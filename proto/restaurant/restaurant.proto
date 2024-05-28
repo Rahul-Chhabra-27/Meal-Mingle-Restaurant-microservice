@@ -1,0 +1,78 @@
+syntax="proto3";
+package proto;
+
+option go_package = "./proto/restaurant";
+import "google/api/annotations.proto";
+
+message AddRestaurantRequest {
+    string restaurantName = 1;
+    string restaurantAddress = 2;
+    string restrautantPhone = 3;
+    string restaurantAvailability = 4;
+    float restaurantRating = 5;
+}
+
+message AddRestaurantResponse {
+    string message = 1;
+    int64 statusCode = 2;
+    string error = 3;
+}
+
+message UpdateRestaurantRequest {
+    string restaurantName = 1;
+    string restaurantAvailability = 2;
+}
+message UpdateRestaurantResponse {
+    string message = 1;
+    int64 statusCode = 2;
+    string error = 3;
+}
+message AddRestaurantItemRequest {
+    string restaurantItemName = 1;
+    int64 restaurantItemPrice = 2;
+    string restaurantName = 3;
+    string restaurantItemAvailability = 4;
+    string imageUrl = 5;
+}
+message AddRestaurantItemResponse {
+    string message = 1;
+    int64 statusCode = 2;
+    string error = 3;
+}
+message UpdateRestaurantItemRequest {
+    string restaurantItemName = 1;
+    int64 restaurantItemPrice = 2;
+    string restaurantName = 3;
+    string restaurantItemAvailability = 4;
+}
+message UpdateRestaurantItemResponse {
+    string message = 1;
+    int64 statusCode = 2;
+    string error = 3;
+}
+service RestaurantService {
+    rpc AddRestaurant(AddRestaurantRequest) returns (AddRestaurantResponse){
+        option (google.api.http) = {
+            post: "/restaurant/add"
+            body: "*"
+        };
+    }
+    rpc UpdateRestaurant(UpdateRestaurantRequest) returns (UpdateRestaurantResponse){
+        option (google.api.http) = {
+            put: "/restaurant/update"
+            body: "*"
+        };
+    }
+    rpc AddRestaurantItem(AddRestaurantItemRequest) returns (AddRestaurantItemResponse){
+        option (google.api.http) = {
+            post: "/restaurant/item/add"
+            body: "*"
+        };
+    }
+    rpc UpdateRestaurantItem(UpdateRestaurantItemRequest) returns (UpdateRestaurantItemResponse){
+        option (google.api.http) = {
+            put: "/restaurant/item/update"
+            body: "*"
+        };
+    }
+}
