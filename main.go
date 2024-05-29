@@ -6,20 +6,38 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"restaurant-micro/config"
+	"restaurant-micro/jwt"
 	restaurantpb "restaurant-micro/proto/restaurant"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"gorm.io/gorm"
 )
 
 type RestaurantService struct {
 	restaurantpb.UnimplementedRestaurantServiceServer
 }
 
+var restaurantDBConnector *gorm.DB
+var restaurantItemDBConnector *gorm.DB
+type Hello struct {
+	Name string
+}
 func startServer() {
+	godotenv.Load(".env")
 	fmt.Println("Starting restaurant-microservice server...")
-
+	// Connect to the database
+	restaurantDB, restaurantItemDB, err := config.ConnectDB(config.GoDotEnvVariable("DB_CONFIG"))
+	restaurantDBConnector = restaurantDB
+	restaurantItemDBConnector = restaurantItemDB
+	
+	
+	if err != nil {
+		log.Fatalf("Could not connect to the database: %s", err)
+	}
 	// Start the gRPC server
 	listner, err := net.Listen("tcp", "localhost:50052")
 	// Check if there is an error while starting the server
@@ -27,11 +45,13 @@ func startServer() {
 		log.Fatalf("Failed to start server: %s", err)
 	}
 	// Create a new gRPC server
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(jwt.UnaryInterceptor),
+	)
 
 	// Register the service with the server
 	restaurantpb.RegisterRestaurantServiceServer(grpcServer, &RestaurantService{})
-	
+
 	// Start the server in a new goroutine (concurrency) (Serve).
 	go func() {
 		if err := grpcServer.Serve(listner); err != nil {

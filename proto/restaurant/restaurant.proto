@@ -7,7 +7,7 @@ import "google/api/annotations.proto";
 message AddRestaurantRequest {
     string restaurantName = 1;
     string restaurantAddress = 2;
-    string restrautantPhone = 3;
+    string restaurantPhone = 3;
     string restaurantAvailability = 4;
     float restaurantRating = 5;
 }

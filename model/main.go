@@ -9,6 +9,7 @@ type Restaurant struct {
 	Phone string `gorm:"unique"`
 	Availability string `gorm:"default:open"`
 	Rating float32 `gorm:"default:0"`
+	RestaurantOwnerMail string
 }
 type RestaurantItem struct {
 	gorm.Model
