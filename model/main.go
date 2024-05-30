@@ -12,9 +12,9 @@ type Restaurant struct {
 	RestaurantOwnerMail string
 }
 type RestaurantItem struct {
-	gorm.Model
-	ItemName string
-	ItemPrice float32
-	ImageUrl string
-	RestaurantId uint `gorm:"foreignKey:ID"`
+    gorm.Model
+    ItemName string `gorm:"type:varchar(255);uniqueIndex:idx_restaurant_items"`
+    ItemPrice int64
+    ImageUrl string
+    RestaurantId uint  `gorm:"foreignKey:RestaurantId;references:ID;uniqueIndex:idx_restaurant_items"` // foreign key referencing the primary key of the Restaurant table
 }

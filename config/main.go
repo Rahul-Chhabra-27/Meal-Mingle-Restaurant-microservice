@@ -26,7 +26,6 @@ func ConnectDB(dsn string) (*gorm.DB, *gorm.DB, error) {
 	restaurantitemDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
-		return nil, nil, err
 	}
 	restaurantitemDB.AutoMigrate(&model.RestaurantItem{})
 	return restaurantDB, restaurantitemDB, nil

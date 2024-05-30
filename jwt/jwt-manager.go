@@ -54,6 +54,11 @@ func VerifyToken(accessToken string) (*UserClaims, error) {
 }
 // Middleware to check if the user is authenticated or not by checking the JWT token provided in the request
 func UnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+	// skip the authentication for the health check endpoint for GetAllRestaurants
+	if info.FullMethod == "/proto.RestaurantService/GetAllRestaurants" {
+		return handler(ctx, req)
+	}
+	
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.Unauthenticated, "metadata is not provided")
