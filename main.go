@@ -23,9 +23,7 @@ type RestaurantService struct {
 
 var restaurantDBConnector *gorm.DB
 var restaurantItemDBConnector *gorm.DB
-type Hello struct {
-	Name string
-}
+
 func startServer() {
 	godotenv.Load(".env")
 	fmt.Println("Starting restaurant-microservice server...")

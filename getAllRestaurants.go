@@ -28,6 +28,7 @@ func (*RestaurantService) GetAllRestaurants(context.Context, *restaurantpb.GetAl
 			RestaurantAvailability: restaurant.Availability,
 			RestaurantRating:       restaurant.Rating,
 			RestaurantOwnerMail: restaurant.RestaurantOwnerMail,
+			RestaurantCity: 	   restaurant.City,
 		})
 	}
 	return &restaurantpb.GetAllRestaurantsResponse{

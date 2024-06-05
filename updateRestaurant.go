@@ -41,6 +41,9 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, response *restau
 	if response.RestaurantAvailability != "" {
 		restaurant.Availability = response.RestaurantAvailability
 	}
+	if response.RestaurantCity != "" {
+		restaurant.City = response.RestaurantCity
+	}
 
 	err := restaurantDBConnector.Save(&restaurant)
 	if err.Error != nil {

@@ -10,6 +10,7 @@ type Restaurant struct {
 	Availability string `gorm:"default:open"`
 	Rating float32 `gorm:"default:0"`
 	RestaurantOwnerMail string
+	City string
 }
 type RestaurantItem struct {
     gorm.Model

@@ -16,6 +16,7 @@ message AddRestaurantRequest {
     string restaurantPhone = 3;
     string restaurantAvailability = 4;
     float restaurantRating = 5;
+    string restaurantCity = 6;
 }
 
 message AddRestaurantResponse {
@@ -29,6 +30,7 @@ message UpdateRestaurantRequest {
     string restaurantAddress = 2;
     string restaurantPhone = 3;
     string restaurantAvailability = 4;
+    string restaurantCity = 5;
 }
 message UpdateRestaurantResponse {
     string message = 1;
@@ -74,6 +76,7 @@ message Restaurant {
     string restaurantAvailability = 4;
     float restaurantRating = 5;
     string restaurantOwnerMail = 6;
+    string restaurantCity = 7;
 }
 
 message GetAllRestaurantsRequest {}
@@ -82,6 +85,15 @@ message GetAllRestaurantsResponse {
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
+}
+message DeleteRestaurantItemRequest {
+    string restaurantName = 1;
+    string restaurantItemName = 2;
+}
+message DeleteRestaurantItemResponse {
+    string message = 1;
+    int64 statusCode = 2;
+    string error = 3;
 }
 service RestaurantService {
     rpc AddRestaurant(AddRestaurantRequest) returns (AddRestaurantResponse){
@@ -118,4 +130,9 @@ service RestaurantService {
             get: "/restaurants"
         };
     }
+    rpc DeleteRestaurantItem(DeleteRestaurantItemRequest) returns (DeleteRestaurantItemResponse){
+        option (google.api.http) = {
+            delete:"/{restaurantName}/delete/{restaurantItemName}"
+        };
+    };
 }

@@ -28,6 +28,7 @@ type RestaurantServiceClient interface {
 	UpdateRestaurantItem(ctx context.Context, in *UpdateRestaurantItemRequest, opts ...grpc.CallOption) (*UpdateRestaurantItemResponse, error)
 	GetAllRestaurantItems(ctx context.Context, in *GetAllRestaurantItemsRequest, opts ...grpc.CallOption) (*GetAllRestaurantItemsResponse, error)
 	GetAllRestaurants(ctx context.Context, in *GetAllRestaurantsRequest, opts ...grpc.CallOption) (*GetAllRestaurantsResponse, error)
+	DeleteRestaurantItem(ctx context.Context, in *DeleteRestaurantItemRequest, opts ...grpc.CallOption) (*DeleteRestaurantItemResponse, error)
 }
 
 type restaurantServiceClient struct {
@@ -92,6 +93,15 @@ func (c *restaurantServiceClient) GetAllRestaurants(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *restaurantServiceClient) DeleteRestaurantItem(ctx context.Context, in *DeleteRestaurantItemRequest, opts ...grpc.CallOption) (*DeleteRestaurantItemResponse, error) {
+	out := new(DeleteRestaurantItemResponse)
+	err := c.cc.Invoke(ctx, "/proto.RestaurantService/DeleteRestaurantItem", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RestaurantServiceServer is the server API for RestaurantService service.
 // All implementations must embed UnimplementedRestaurantServiceServer
 // for forward compatibility
@@ -102,6 +112,7 @@ type RestaurantServiceServer interface {
 	UpdateRestaurantItem(context.Context, *UpdateRestaurantItemRequest) (*UpdateRestaurantItemResponse, error)
 	GetAllRestaurantItems(context.Context, *GetAllRestaurantItemsRequest) (*GetAllRestaurantItemsResponse, error)
 	GetAllRestaurants(context.Context, *GetAllRestaurantsRequest) (*GetAllRestaurantsResponse, error)
+	DeleteRestaurantItem(context.Context, *DeleteRestaurantItemRequest) (*DeleteRestaurantItemResponse, error)
 	mustEmbedUnimplementedRestaurantServiceServer()
 }
 
@@ -126,6 +137,9 @@ func (UnimplementedRestaurantServiceServer) GetAllRestaurantItems(context.Contex
 }
 func (UnimplementedRestaurantServiceServer) GetAllRestaurants(context.Context, *GetAllRestaurantsRequest) (*GetAllRestaurantsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllRestaurants not implemented")
+}
+func (UnimplementedRestaurantServiceServer) DeleteRestaurantItem(context.Context, *DeleteRestaurantItemRequest) (*DeleteRestaurantItemResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRestaurantItem not implemented")
 }
 func (UnimplementedRestaurantServiceServer) mustEmbedUnimplementedRestaurantServiceServer() {}
 
@@ -248,6 +262,24 @@ func _RestaurantService_GetAllRestaurants_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RestaurantService_DeleteRestaurantItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRestaurantItemRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RestaurantServiceServer).DeleteRestaurantItem(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/proto.RestaurantService/DeleteRestaurantItem",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RestaurantServiceServer).DeleteRestaurantItem(ctx, req.(*DeleteRestaurantItemRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RestaurantService_ServiceDesc is the grpc.ServiceDesc for RestaurantService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -278,6 +310,10 @@ var RestaurantService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetAllRestaurants",
 			Handler:    _RestaurantService_GetAllRestaurants_Handler,
+		},
+		{
+			MethodName: "DeleteRestaurantItem",
+			Handler:    _RestaurantService_DeleteRestaurantItem_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

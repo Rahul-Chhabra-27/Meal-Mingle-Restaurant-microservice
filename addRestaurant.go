@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"restaurant-micro/model"
 	restaurantpb "restaurant-micro/proto/restaurant"
 
@@ -12,11 +12,12 @@ import (
 func (*RestaurantService) AddRestaurant(ctx context.Context, response *restaurantpb.AddRestaurantRequest) (*restaurantpb.AddRestaurantResponse, error) {
 	userEmail, ok := ctx.Value("userEmail").(string)
 	if !ok {
-		log.Fatalf("Failed to get user email from context")
+		fmt.Println("Failed to get user email from context")
 		return &restaurantpb.AddRestaurantResponse{Message: "", Error: "Internal Server Error", StatusCode: int64(codes.Internal)}, nil
 	}
 	var restaurant model.Restaurant
 	restaurant.Name = response.RestaurantName
+	restaurant.City = response.RestaurantCity
 	restaurant.Address = response.RestaurantAddress
 	restaurant.Phone = response.RestaurantPhone
 	restaurant.Availability = response.RestaurantAvailability
