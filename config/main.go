@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"restaurant-micro/model"
@@ -29,4 +30,33 @@ func ConnectDB(dsn string) (*gorm.DB, *gorm.DB, error) {
 	}
 	restaurantitemDB.AutoMigrate(&model.RestaurantItem{})
 	return restaurantDB, restaurantitemDB, nil
+}
+
+func ValidateRestaurantFields(RestaurantName string, RestaurantCity string, RestaurantAddress string, RestaurantPhone string, RestaurantAvailability string) bool {
+
+	if RestaurantName == "" || RestaurantCity == "" || RestaurantAddress == "" || RestaurantPhone == "" || RestaurantAvailability == "" {
+		return false
+	}
+	return true
+}
+
+func ValidateRestaurantItemFields(RestaurantItemName string, RestaurantItemImageUrl string) bool {
+	fmt.Println(RestaurantItemName, RestaurantItemImageUrl)
+	if RestaurantItemName == "" || RestaurantItemImageUrl == "" {
+		return false
+	}
+	return true
+}
+
+func ValidateRestaurantPhone(restaurantPhone string) bool {
+	if len(restaurantPhone) != 10 {
+		return false
+	}
+	
+	for _, char := range restaurantPhone {
+		if char < '0' || char > '9' {
+			return false
+		}
+	}
+	return true
 }

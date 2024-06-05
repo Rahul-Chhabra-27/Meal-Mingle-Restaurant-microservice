@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"restaurant-micro/config"
 	"restaurant-micro/model"
 	restaurantpb "restaurant-micro/proto/restaurant"
 
@@ -29,21 +30,26 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, response *restau
 			Error:      "Restaurant Does not exist OR you are not the owner of this restaurant",
 		}, nil
 	}
-	if response.RestaurantName != "" {
-		restaurant.Name = response.RestaurantName
+	if !config.ValidateRestaurantFields(response.RestaurantName, response.RestaurantCity, response.RestaurantAddress, response.RestaurantPhone, response.RestaurantAvailability) {
+		return &restaurantpb.UpdateRestaurantResponse{
+			Message:    "",
+			StatusCode: int64(codes.InvalidArgument),
+			Error:      "Invalid restaurant fields",
+		}, nil
 	}
-	if response.RestaurantAddress != "" {
-		restaurant.Address = response.RestaurantAddress
+	
+	if !config.ValidateRestaurantPhone(response.RestaurantPhone) {
+		return &restaurantpb.UpdateRestaurantResponse{
+			Message:    "",
+			StatusCode: int64(codes.InvalidArgument),
+			Error:      "Invalid phone number",
+		}, nil
 	}
-	if response.RestaurantPhone != "" {
-		restaurant.Phone = response.RestaurantPhone
-	}
-	if response.RestaurantAvailability != "" {
-		restaurant.Availability = response.RestaurantAvailability
-	}
-	if response.RestaurantCity != "" {
-		restaurant.City = response.RestaurantCity
-	}
+	restaurant.Name = response.RestaurantName
+	restaurant.Address = response.RestaurantAddress
+	restaurant.Phone = response.RestaurantPhone
+	restaurant.Availability = response.RestaurantAvailability
+	restaurant.City = response.RestaurantCity
 
 	err := restaurantDBConnector.Save(&restaurant)
 	if err.Error != nil {

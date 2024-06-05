@@ -104,7 +104,7 @@ service RestaurantService {
     }
     rpc UpdateRestaurant(UpdateRestaurantRequest) returns (UpdateRestaurantResponse){
         option (google.api.http) = {
-            patch: "/restaurant/update"
+            put: "/restaurant/update"
             body: "*"
         };
     }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"restaurant-micro/config"
 	"restaurant-micro/model"
 	restaurantpb "restaurant-micro/proto/restaurant"
 
@@ -37,6 +38,13 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, response *re
 			Message:    "",
 			StatusCode: int64(codes.Internal),
 			Error:      "Restaurant item does not exist",
+		}, nil
+	}
+	if !config.ValidateRestaurantItemFields(response.RestaurantItemName, response.RestaurantItemImageUrl) {
+		return &restaurantpb.UpdateRestaurantItemResponse{
+			Message:    "",
+			StatusCode: int64(codes.InvalidArgument),
+			Error:      "Invalid restaurant item fields",
 		}, nil
 	}
 	restaurantItem.ItemName = response.RestaurantItemName
