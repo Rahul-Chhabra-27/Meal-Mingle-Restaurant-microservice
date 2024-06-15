@@ -4,25 +4,40 @@ package proto;
 option go_package = "./proto/restaurant";
 import "google/api/annotations.proto";
 
+message Restaurant {
+    string restaurantName = 1;
+    string restaurantAddress = 2;
+    string restaurantPhone = 3;
+    string restaurantAvailability = 4;
+    float restaurantRating = 5;
+    string restaurantOwnerMail = 6;
+    string restaurantCity = 7;
+    string restaurantImageUrl = 8;
+}
 message RestaurantItem {
     string restaurantItemName = 1;
     int64 restaurantItemPrice = 2;
     string restaurantName = 3;
     string restaurantItemImageUrl = 4;
 }
+message restaurantData {
+    int64 totalRestaurants = 1;
+    repeated Restaurant restaurants = 2;
+}
+message restaurantItemData {
+    int64 totalRestaurantItems = 1;
+    repeated RestaurantItem restaurantItems = 2;
+    string restaurantName = 3;
+}
 message AddRestaurantRequest {
-    string restaurantName = 1;
-    string restaurantAddress = 2;
-    string restaurantPhone = 3;
-    string restaurantAvailability = 4;
-    float restaurantRating = 5;
-    string restaurantCity = 6;
+    Restaurant restaurant = 1;
 }
 
 message AddRestaurantResponse {
-    string message = 1;
-    int64 statusCode = 2;
-    string error = 3;
+    restaurantData data = 1;
+    string message = 2;
+    int64 statusCode = 3;
+    string error = 4;
 }
 
 message UpdateRestaurantRequest {
@@ -31,6 +46,7 @@ message UpdateRestaurantRequest {
     string restaurantPhone = 3;
     string restaurantAvailability = 4;
     string restaurantCity = 5;
+    string restaurantImageUrl = 6;
 }
 message UpdateRestaurantResponse {
     string message = 1;
@@ -63,25 +79,17 @@ message GetAllRestaurantItemsRequest {
     string restaurantName = 1;
 }
 message GetAllRestaurantItemsResponse {
-    repeated RestaurantItem restaurantItems = 1;
+    restaurantItemData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
 }
 
-message Restaurant {
-    string restaurantName = 1;
-    string restaurantAddress = 2;
-    string restaurantPhone = 3;
-    string restaurantAvailability = 4;
-    float restaurantRating = 5;
-    string restaurantOwnerMail = 6;
-    string restaurantCity = 7;
-}
 
 message GetAllRestaurantsRequest {}
+
 message GetAllRestaurantsResponse {
-    repeated Restaurant restaurants = 1;
+    restaurantData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
@@ -94,6 +102,24 @@ message DeleteRestaurantItemResponse {
     string message = 1;
     int64 statusCode = 2;
     string error = 3;
+}
+message GetRestaurantsByCityRequest {
+    string city = 1;
+}
+message GetRestaurantsByCityResponse {
+    restaurantData data = 1;
+    string message = 2;
+    int64 statusCode = 3;
+    string error = 4;
+}
+message GetRestaurantsByRestaurantItemRequest {
+    string restaurantItemName = 1;
+}
+message GetRestaurantsByRestaurantItemResponse {
+    repeated Restaurant restaurants = 1;
+    string message = 2;
+    int64 statusCode = 3;
+    string error = 4;
 }
 service RestaurantService {
     rpc AddRestaurant(AddRestaurantRequest) returns (AddRestaurantResponse){
@@ -122,12 +148,12 @@ service RestaurantService {
     }
     rpc GetAllRestaurantItems(GetAllRestaurantItemsRequest) returns (GetAllRestaurantItemsResponse){
         option (google.api.http) = {
-            get: "/restaurant/items/{restaurantName}"
+            get: "/api/restaurant/{restaurantName}/items"
         };
     }
     rpc GetAllRestaurants(GetAllRestaurantsRequest) returns (GetAllRestaurantsResponse){
         option (google.api.http) = {
-            get: "/restaurants"
+            get: "/api/restaurants"
         };
     }
     rpc DeleteRestaurantItem(DeleteRestaurantItemRequest) returns (DeleteRestaurantItemResponse){
@@ -135,4 +161,14 @@ service RestaurantService {
             delete:"/{restaurantName}/delete/{restaurantItemName}"
         };
     };
+    rpc GetRestaurantsByCity(GetRestaurantsByCityRequest) returns (GetRestaurantsByCityResponse){
+        option (google.api.http) = {
+            get: "/restaurants/city/{city}"
+        };
+    }
+    rpc GetRestaurantsByRestaurantsItem(GetRestaurantsByRestaurantItemRequest) returns (GetRestaurantsByRestaurantItemResponse){
+        option (google.api.http) = {
+            get: "/restaurants/item/{restaurantItemName}"
+        };
+    }
 }

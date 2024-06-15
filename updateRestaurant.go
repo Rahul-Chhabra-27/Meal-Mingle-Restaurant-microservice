@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-func (*RestaurantService) UpdateRestaurant(ctx context.Context, response *restaurantpb.UpdateRestaurantRequest) (*restaurantpb.UpdateRestaurantResponse, error) {
+func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaurantpb.UpdateRestaurantRequest) (*restaurantpb.UpdateRestaurantResponse, error) {
 	// fetch the user email from the context
 	userEmail, ok := ctx.Value("userEmail").(string)
 	if !ok {
@@ -21,7 +21,7 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, response *restau
 	}
 	// fetch restaurant from restaurantDB
 	var restaurant model.Restaurant
-	primaryKeyRes := restaurantDBConnector.Where("name = ?", response.RestaurantName).First(&restaurant)
+	primaryKeyRes := restaurantDBConnector.Where("name = ?", request.RestaurantName).First(&restaurant)
 	// check if the restaurant is exist or not
 	if primaryKeyRes.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
 		return &restaurantpb.UpdateRestaurantResponse{
@@ -30,7 +30,7 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, response *restau
 			Error:      "Restaurant Does not exist OR you are not the owner of this restaurant",
 		}, nil
 	}
-	if !config.ValidateRestaurantFields(response.RestaurantName, response.RestaurantCity, response.RestaurantAddress, response.RestaurantPhone, response.RestaurantAvailability) {
+	if !config.ValidateRestaurantFields(request.RestaurantName, request.RestaurantCity, request.RestaurantAddress, request.RestaurantPhone, request.RestaurantAvailability, request.RestaurantImageUrl) {
 		return &restaurantpb.UpdateRestaurantResponse{
 			Message:    "",
 			StatusCode: int64(codes.InvalidArgument),
@@ -38,18 +38,18 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, response *restau
 		}, nil
 	}
 	
-	if !config.ValidateRestaurantPhone(response.RestaurantPhone) {
+	if !config.ValidateRestaurantPhone(request.RestaurantPhone) {
 		return &restaurantpb.UpdateRestaurantResponse{
 			Message:    "",
 			StatusCode: int64(codes.InvalidArgument),
 			Error:      "Invalid phone number",
 		}, nil
 	}
-	restaurant.Name = response.RestaurantName
-	restaurant.Address = response.RestaurantAddress
-	restaurant.Phone = response.RestaurantPhone
-	restaurant.Availability = response.RestaurantAvailability
-	restaurant.City = response.RestaurantCity
+	restaurant.Name = request.RestaurantName
+	restaurant.Address = request.RestaurantAddress
+	restaurant.Phone = request.RestaurantPhone
+	restaurant.Availability = request.RestaurantAvailability
+	restaurant.City = request.RestaurantCity
 
 	err := restaurantDBConnector.Save(&restaurant)
 	if err.Error != nil {

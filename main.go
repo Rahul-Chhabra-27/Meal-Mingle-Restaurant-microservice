@@ -10,6 +10,7 @@ import (
 	"restaurant-micro/jwt"
 	restaurantpb "restaurant-micro/proto/restaurant"
 
+	"github.com/gorilla/handlers"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
@@ -31,8 +32,7 @@ func startServer() {
 	restaurantDB, restaurantItemDB, err := config.ConnectDB(config.GoDotEnvVariable("DB_CONFIG"))
 	restaurantDBConnector = restaurantDB
 	restaurantItemDBConnector = restaurantItemDB
-	
-	
+
 	if err != nil {
 		log.Fatalf("Could not connect to the database: %s", err)
 	}
@@ -74,10 +74,16 @@ func startServer() {
 	if err != nil {
 		log.Fatalln("Failed to register gateway:", err)
 	}
+	// Enable CORS
+	corsOrigins := handlers.AllowedOrigins([]string{"http://localhost:3000"})
+	corsMethods := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"})
+	corsHeaders := handlers.AllowedHeaders([]string{"Content-Type", "Authorization"})
+	corsHandler := handlers.CORS(corsOrigins, corsMethods, corsHeaders)
+	wrappedGwmux := corsHandler(gwmux)
 	// Create a new HTTP server (gateway). (Serve). (ListenAndServe)
 	gwServer := &http.Server{
 		Addr:    ":8091",
-		Handler: gwmux,
+		Handler: wrappedGwmux,
 	}
 
 	log.Println("Serving gRPC-Gateway on http://0.0.0.0:8091")

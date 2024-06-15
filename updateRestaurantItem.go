@@ -9,7 +9,7 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, response *restaurantpb.UpdateRestaurantItemRequest) (*restaurantpb.UpdateRestaurantItemResponse, error) {
+func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *restaurantpb.UpdateRestaurantItemRequest) (*restaurantpb.UpdateRestaurantItemResponse, error) {
 	// get the user email from the context
 	userEmail, ok := ctx.Value("userEmail").(string)
 	if !ok {
@@ -21,7 +21,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, response *re
 	}
 	// fetch restaurant from restaurantDB
 	var restaurant model.Restaurant
-	primaryKeyRes := restaurantDBConnector.Where("name = ?", response.RestaurantName).First(&restaurant)
+	primaryKeyRes := restaurantDBConnector.Where("name = ?", request.RestaurantName).First(&restaurant)
 	// check if the restaurant is exist or nor
 	if primaryKeyRes.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
 		return &restaurantpb.UpdateRestaurantItemResponse{
@@ -32,7 +32,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, response *re
 	}
 
 	var restaurantItem model.RestaurantItem
-	primaryKey := restaurantItemDBConnector.Where("item_name = ? AND restaurant_id = ?", response.RestaurantItemName, restaurant.ID).First(&restaurantItem)
+	primaryKey := restaurantItemDBConnector.Where("item_name = ? AND restaurant_id = ?", request.RestaurantItemName, restaurant.ID).First(&restaurantItem)
 	if primaryKey.Error != nil {
 		return &restaurantpb.UpdateRestaurantItemResponse{
 			Message:    "",
@@ -40,16 +40,16 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, response *re
 			Error:      "Restaurant item does not exist",
 		}, nil
 	}
-	if !config.ValidateRestaurantItemFields(response.RestaurantItemName, response.RestaurantItemImageUrl) {
+	if !config.ValidateRestaurantItemFields(request.RestaurantItemName, request.RestaurantItemImageUrl) {
 		return &restaurantpb.UpdateRestaurantItemResponse{
 			Message:    "",
 			StatusCode: int64(codes.InvalidArgument),
 			Error:      "Invalid restaurant item fields",
 		}, nil
 	}
-	restaurantItem.ItemName = response.RestaurantItemName
-	restaurantItem.ItemPrice = response.RestaurantItemPrice
-	restaurantItem.ImageUrl = response.RestaurantItemImageUrl
+	restaurantItem.ItemName = request.RestaurantItemName
+	restaurantItem.ItemPrice = request.RestaurantItemPrice
+	restaurantItem.ImageUrl = request.RestaurantItemImageUrl
 	err := restaurantItemDBConnector.Save(&restaurantItem)
 	if err.Error != nil {
 		return &restaurantpb.UpdateRestaurantItemResponse{

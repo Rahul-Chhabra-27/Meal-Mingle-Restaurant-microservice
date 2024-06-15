@@ -13,14 +13,19 @@ func (*RestaurantService) GetAllRestaurants(context.Context, *restaurantpb.GetAl
 	err := restaurantDBConnector.Find(&restaurants)
 	if err.Error != nil {
 		return &restaurantpb.GetAllRestaurantsResponse{
-			Restaurants: nil,
+			Data: &restaurantpb.RestaurantData{
+				TotalRestaurants: 0,
+				Restaurants: nil,
+			},
 			Message:     "",
 			StatusCode:  int64(codes.Internal),
 			Error:       "Failed to get restaurants",
 		}, nil
 	}
 	restaurantsResponse := []*restaurantpb.Restaurant{}
+	totalRestaurants := 0;
 	for _, restaurant := range restaurants {
+		totalRestaurants++
 		restaurantsResponse = append(restaurantsResponse, &restaurantpb.Restaurant{
 			RestaurantName:         restaurant.Name,
 			RestaurantAddress:      restaurant.Address,
@@ -32,7 +37,10 @@ func (*RestaurantService) GetAllRestaurants(context.Context, *restaurantpb.GetAl
 		})
 	}
 	return &restaurantpb.GetAllRestaurantsResponse{
-		Restaurants: restaurantsResponse,
+		Data: &restaurantpb.RestaurantData{
+			TotalRestaurants: int64(totalRestaurants),
+			Restaurants: restaurantsResponse,
+		},
 		Message:     "Restaurants fetched successfully",
 		StatusCode:  200,
 		Error:       "",

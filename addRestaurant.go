@@ -14,37 +14,46 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, response *restauran
 	userEmail, ok := ctx.Value("userEmail").(string)
 	if !ok {
 		fmt.Println("Failed to get user email from context")
-		return &restaurantpb.AddRestaurantResponse{Message: "", Error: "Internal Server Error", StatusCode: int64(codes.Internal)}, nil
+		return &restaurantpb.AddRestaurantResponse{Message: "", Error: "Internal Server Error", StatusCode: int64(500)}, nil
 	}
-	if !config.ValidateRestaurantFields(response.RestaurantName, response.RestaurantCity,response.RestaurantAddress, response.RestaurantPhone, response.RestaurantAvailability) {
+	restaurantName := response.Restaurant.RestaurantName;
+	restaurantCity := response.Restaurant.RestaurantCity;
+	restaurantAvailability := response.Restaurant.RestaurantAvailability;
+	restaurantAddress := response.Restaurant.RestaurantAddress
+	restaurantPhone := response.Restaurant.RestaurantPhone
+	restaurantRating := response.Restaurant.RestaurantRating
+	restaurantImageUrl := response.Restaurant.RestaurantImageUrl
+
+	if !config.ValidateRestaurantFields(restaurantName, restaurantCity,restaurantAddress, restaurantPhone, restaurantAvailability,restaurantImageUrl) {
 
 		return &restaurantpb.AddRestaurantResponse{
 			Message:    "",
-			StatusCode: int64(codes.InvalidArgument),
+			StatusCode: 400,
 			Error:      "Invalid restaurant fields",
 		}, nil
 	}
-	if !config.ValidateRestaurantPhone(response.RestaurantPhone) {
+	if !config.ValidateRestaurantPhone(restaurantPhone) {
 		return &restaurantpb.AddRestaurantResponse{
 			Message:    "",
-			StatusCode: int64(codes.InvalidArgument),
+			StatusCode: 400,
 			Error:      "Invalid phone number",
 		}, nil
 	}
 	var restaurant model.Restaurant
-	restaurant.Name = response.RestaurantName
-	restaurant.City = response.RestaurantCity
-	restaurant.Address = response.RestaurantAddress
-	restaurant.Phone = response.RestaurantPhone
-	restaurant.Availability = response.RestaurantAvailability
-	restaurant.Rating = response.RestaurantRating
+	restaurant.Name = restaurantName
+	restaurant.City = restaurantCity
+	restaurant.Address = restaurantAddress
+	restaurant.Phone = restaurantPhone
+	restaurant.Availability = restaurantAvailability
+	restaurant.Rating = restaurantRating
 	restaurant.RestaurantOwnerMail = userEmail
+	restaurant.ImageUrl = restaurantImageUrl
 	restaurantNotFoundErr := restaurantDBConnector.Where("name = ?", restaurant.Name).First(&restaurant).Error
 
 	if restaurantNotFoundErr == nil {
 		return &restaurantpb.AddRestaurantResponse{
-			Message:    "Restaurant already exists",
-			StatusCode: int64(codes.AlreadyExists),
+			Message:    "Restaurant with the same name already exists",
+			StatusCode: int64(409),
 			Error:      "",
 		}, nil
 	}
@@ -52,11 +61,26 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, response *restauran
 	if primaryKey.Error != nil {
 		return &restaurantpb.AddRestaurantResponse{
 			Message:    "Failed to add restaurant",
-			StatusCode: int64(codes.Internal),
+			StatusCode: 500,
 			Error:      primaryKey.Error.Error(),
 		}, nil
 	}
 	return &restaurantpb.AddRestaurantResponse{
+		Data:&restaurantpb.RestaurantData {
+			Restaurants: []*restaurantpb.Restaurant{
+				{
+					RestaurantName:restaurantName,
+					RestaurantCity:restaurantCity,
+					RestaurantAddress:restaurantAddress,
+					RestaurantPhone:restaurantPhone,
+					RestaurantAvailability:restaurantAvailability,
+					RestaurantRating:restaurantRating,
+					RestaurantOwnerMail:userEmail,
+					RestaurantImageUrl:restaurantImageUrl,
+				},
+			},
+			TotalRestaurants: 1,
+		},
 		Message:    "Restaurant added successfully",
 		StatusCode: 200,
 		Error:      "",

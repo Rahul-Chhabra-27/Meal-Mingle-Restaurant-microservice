@@ -32,9 +32,9 @@ func ConnectDB(dsn string) (*gorm.DB, *gorm.DB, error) {
 	return restaurantDB, restaurantitemDB, nil
 }
 
-func ValidateRestaurantFields(RestaurantName string, RestaurantCity string, RestaurantAddress string, RestaurantPhone string, RestaurantAvailability string) bool {
+func ValidateRestaurantFields(RestaurantName string, RestaurantCity string, RestaurantAddress string, RestaurantPhone string, RestaurantAvailability string, RestaurantImageUrl string) bool {
 
-	if RestaurantName == "" || RestaurantCity == "" || RestaurantAddress == "" || RestaurantPhone == "" || RestaurantAvailability == "" {
+	if RestaurantImageUrl == "" ||  RestaurantName == "" || RestaurantCity == "" || RestaurantAddress == "" || RestaurantPhone == "" || RestaurantAvailability == "" {
 		return false
 	}
 	return true

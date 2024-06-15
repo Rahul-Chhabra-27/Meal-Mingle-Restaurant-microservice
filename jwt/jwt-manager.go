@@ -58,7 +58,12 @@ func UnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, 
 	if info.FullMethod == "/proto.RestaurantService/GetAllRestaurants" {
 		return handler(ctx, req)
 	}
-	
+	if info.FullMethod == "/proto.RestaurantService/GetAllRestaurantItems" {
+		return handler(ctx, req)
+	}
+	if info.FullMethod == "/proto.RestaurantService/GetRestaurantsByCity" {
+		return handler(ctx, req)
+	}
 	md, ok := metadata.FromIncomingContext(ctx)
 	if !ok {
 		return nil, status.Errorf(codes.Unauthenticated, "metadata is not provided")
