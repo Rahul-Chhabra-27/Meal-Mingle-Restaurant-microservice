@@ -24,14 +24,16 @@ type RestaurantService struct {
 
 var restaurantDBConnector *gorm.DB
 var restaurantItemDBConnector *gorm.DB
+var restaurantAddressDBConnector *gorm.DB
 
 func startServer() {
 	godotenv.Load(".env")
 	fmt.Println("Starting restaurant-microservice server...")
 	// Connect to the database
-	restaurantDB, restaurantItemDB, err := config.ConnectDB(config.GoDotEnvVariable("DB_CONFIG"))
+	restaurantDB, restaurantItemDB, restaurantAddress ,err := config.ConnectDB()
 	restaurantDBConnector = restaurantDB
 	restaurantItemDBConnector = restaurantItemDB
+	restaurantAddressDBConnector = restaurantAddress
 
 	if err != nil {
 		log.Fatalf("Could not connect to the database: %s", err)

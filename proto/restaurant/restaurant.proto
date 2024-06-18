@@ -4,23 +4,36 @@ package proto;
 option go_package = "./proto/restaurant";
 import "google/api/annotations.proto";
 
+message Address {
+    string streetName = 1;
+    string pincode = 2;
+    string city = 3;
+    string country = 4;
+}
 message Restaurant {
     string restaurantName = 1;
-    string restaurantAddress = 2;
-    string restaurantPhone = 3;
+    Address restaurantAddress = 2;
+    string restaurantPhoneNumber = 3;
     string restaurantAvailability = 4;
-    float restaurantRating = 5;
-    string restaurantOwnerMail = 6;
-    string restaurantCity = 7;
-    string restaurantImageUrl = 8;
+    float  restaurantRating = 5;
+    string restaurantImageUrl = 6;
+    string restaurantOwnerMail = 7;
+    string restaurantOperationDays =8;
+    string restaurantOperationHours =9;
 }
 message RestaurantItem {
     string restaurantItemName = 1;
     int64 restaurantItemPrice = 2;
-    string restaurantName = 3;
-    string restaurantItemImageUrl = 4;
+    string restaurantItemCategory = 3;
+    string restaurantItemCuisineType = 4;
+    string restaurantName = 5;
+    bool   restaurantItemVeg = 6;
+    string restaurantItemImageUrl = 7;
 }
-message restaurantData {
+message addRestaurantData {
+    Restaurant restaurant = 1;
+}
+message getAllRestaurantsData {
     int64 totalRestaurants = 1;
     repeated Restaurant restaurants = 2;
 }
@@ -34,7 +47,7 @@ message AddRestaurantRequest {
 }
 
 message AddRestaurantResponse {
-    restaurantData data = 1;
+    addRestaurantData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
@@ -75,21 +88,19 @@ message UpdateRestaurantItemResponse {
     int64 statusCode = 2;
     string error = 3;
 }
-message GetAllRestaurantItemsRequest {
-    string restaurantName = 1;
-}
-message GetAllRestaurantItemsResponse {
-    restaurantItemData data = 1;
-    string message = 2;
-    int64 statusCode = 3;
-    string error = 4;
-}
-
-
+// message GetAllRestaurantItemsRequest {
+//     repeated Restaurant restaurants = 1;
+// }
+// message GetAllRestaurantItemsResponse {
+//     restaurantItemData data = 1;
+//     string message = 2;
+//     int64 statusCode = 3;
+//     string error = 4;
+// }
 message GetAllRestaurantsRequest {}
 
 message GetAllRestaurantsResponse {
-    restaurantData data = 1;
+    getAllRestaurantsData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
@@ -107,7 +118,7 @@ message GetRestaurantsByCityRequest {
     string city = 1;
 }
 message GetRestaurantsByCityResponse {
-    restaurantData data = 1;
+    getAllRestaurantsData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
@@ -124,7 +135,7 @@ message GetRestaurantsByRestaurantItemResponse {
 service RestaurantService {
     rpc AddRestaurant(AddRestaurantRequest) returns (AddRestaurantResponse){
         option (google.api.http) = {
-            post: "/restaurant/add"
+            post: "/api/restaurant/add"
             body: "*"
         };
     }
@@ -146,11 +157,11 @@ service RestaurantService {
             body: "*"
         };
     }
-    rpc GetAllRestaurantItems(GetAllRestaurantItemsRequest) returns (GetAllRestaurantItemsResponse){
-        option (google.api.http) = {
-            get: "/api/restaurant/{restaurantName}/items"
-        };
-    }
+    // rpc GetAllRestaurantItems(GetAllRestaurantItemsRequest) returns (GetAllRestaurantItemsResponse){
+    //     option (google.api.http) = {
+    //         get: "/api/restaurant/{restaurantName}/items"
+    //     };
+    // }
     rpc GetAllRestaurants(GetAllRestaurantsRequest) returns (GetAllRestaurantsResponse){
         option (google.api.http) = {
             get: "/api/restaurants"
@@ -172,3 +183,31 @@ service RestaurantService {
         };
     }
 }
+
+// {
+//     "restaurantId": "1",
+//     "restaurantName": "The Pizza Kings",
+//     "restaurantAddress": {
+//         "streetNumber": "12/92",
+//         "streetName": "Babar Pur, Shahdara, Geeta Colony",
+//         "city": "Delhi",
+//         "country": "India"
+//     },
+//     "restaurantRating": 3.6,
+//     "restaurantDiscount": 12,
+//     "restaurantAvailability": true,
+//     "restaurantImage": "restaurant_1.png",
+//     "restaurantOperationDays": "Mon-Fri",
+//     "restaurantOperationHours": "10:00AM-11:00PM",
+//     "restaurantItems": [
+//         {
+//             "restaurantItemId": "1_1",
+//             "restaurantItemName": "Margherita Pizza",
+//             "restaurantItemPrice": 390,
+//             "restaurantItemCategory": "Pizza",
+//             "restaurantItemImageUrl": "restaurant_1_menu_1.png",
+//             "restaurantItemCuisineType": "North Indian",
+//             "restaurantItemVeg": true
+//         }
+//     ]
+// },

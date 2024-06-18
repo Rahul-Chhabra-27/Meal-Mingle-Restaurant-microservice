@@ -23,7 +23,6 @@ const (
 	RestaurantService_UpdateRestaurant_FullMethodName                = "/proto.RestaurantService/UpdateRestaurant"
 	RestaurantService_AddRestaurantItem_FullMethodName               = "/proto.RestaurantService/AddRestaurantItem"
 	RestaurantService_UpdateRestaurantItem_FullMethodName            = "/proto.RestaurantService/UpdateRestaurantItem"
-	RestaurantService_GetAllRestaurantItems_FullMethodName           = "/proto.RestaurantService/GetAllRestaurantItems"
 	RestaurantService_GetAllRestaurants_FullMethodName               = "/proto.RestaurantService/GetAllRestaurants"
 	RestaurantService_DeleteRestaurantItem_FullMethodName            = "/proto.RestaurantService/DeleteRestaurantItem"
 	RestaurantService_GetRestaurantsByCity_FullMethodName            = "/proto.RestaurantService/GetRestaurantsByCity"
@@ -38,7 +37,11 @@ type RestaurantServiceClient interface {
 	UpdateRestaurant(ctx context.Context, in *UpdateRestaurantRequest, opts ...grpc.CallOption) (*UpdateRestaurantResponse, error)
 	AddRestaurantItem(ctx context.Context, in *AddRestaurantItemRequest, opts ...grpc.CallOption) (*AddRestaurantItemResponse, error)
 	UpdateRestaurantItem(ctx context.Context, in *UpdateRestaurantItemRequest, opts ...grpc.CallOption) (*UpdateRestaurantItemResponse, error)
-	GetAllRestaurantItems(ctx context.Context, in *GetAllRestaurantItemsRequest, opts ...grpc.CallOption) (*GetAllRestaurantItemsResponse, error)
+	//	rpc GetAllRestaurantItems(GetAllRestaurantItemsRequest) returns (GetAllRestaurantItemsResponse){
+	//	    option (google.api.http) = {
+	//	        get: "/api/restaurant/{restaurantName}/items"
+	//	    };
+	//	}
 	GetAllRestaurants(ctx context.Context, in *GetAllRestaurantsRequest, opts ...grpc.CallOption) (*GetAllRestaurantsResponse, error)
 	DeleteRestaurantItem(ctx context.Context, in *DeleteRestaurantItemRequest, opts ...grpc.CallOption) (*DeleteRestaurantItemResponse, error)
 	GetRestaurantsByCity(ctx context.Context, in *GetRestaurantsByCityRequest, opts ...grpc.CallOption) (*GetRestaurantsByCityResponse, error)
@@ -93,16 +96,6 @@ func (c *restaurantServiceClient) UpdateRestaurantItem(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *restaurantServiceClient) GetAllRestaurantItems(ctx context.Context, in *GetAllRestaurantItemsRequest, opts ...grpc.CallOption) (*GetAllRestaurantItemsResponse, error) {
-	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetAllRestaurantItemsResponse)
-	err := c.cc.Invoke(ctx, RestaurantService_GetAllRestaurantItems_FullMethodName, in, out, cOpts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *restaurantServiceClient) GetAllRestaurants(ctx context.Context, in *GetAllRestaurantsRequest, opts ...grpc.CallOption) (*GetAllRestaurantsResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(GetAllRestaurantsResponse)
@@ -151,7 +144,11 @@ type RestaurantServiceServer interface {
 	UpdateRestaurant(context.Context, *UpdateRestaurantRequest) (*UpdateRestaurantResponse, error)
 	AddRestaurantItem(context.Context, *AddRestaurantItemRequest) (*AddRestaurantItemResponse, error)
 	UpdateRestaurantItem(context.Context, *UpdateRestaurantItemRequest) (*UpdateRestaurantItemResponse, error)
-	GetAllRestaurantItems(context.Context, *GetAllRestaurantItemsRequest) (*GetAllRestaurantItemsResponse, error)
+	//	rpc GetAllRestaurantItems(GetAllRestaurantItemsRequest) returns (GetAllRestaurantItemsResponse){
+	//	    option (google.api.http) = {
+	//	        get: "/api/restaurant/{restaurantName}/items"
+	//	    };
+	//	}
 	GetAllRestaurants(context.Context, *GetAllRestaurantsRequest) (*GetAllRestaurantsResponse, error)
 	DeleteRestaurantItem(context.Context, *DeleteRestaurantItemRequest) (*DeleteRestaurantItemResponse, error)
 	GetRestaurantsByCity(context.Context, *GetRestaurantsByCityRequest) (*GetRestaurantsByCityResponse, error)
@@ -174,9 +171,6 @@ func (UnimplementedRestaurantServiceServer) AddRestaurantItem(context.Context, *
 }
 func (UnimplementedRestaurantServiceServer) UpdateRestaurantItem(context.Context, *UpdateRestaurantItemRequest) (*UpdateRestaurantItemResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateRestaurantItem not implemented")
-}
-func (UnimplementedRestaurantServiceServer) GetAllRestaurantItems(context.Context, *GetAllRestaurantItemsRequest) (*GetAllRestaurantItemsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAllRestaurantItems not implemented")
 }
 func (UnimplementedRestaurantServiceServer) GetAllRestaurants(context.Context, *GetAllRestaurantsRequest) (*GetAllRestaurantsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetAllRestaurants not implemented")
@@ -275,24 +269,6 @@ func _RestaurantService_UpdateRestaurantItem_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RestaurantService_GetAllRestaurantItems_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAllRestaurantItemsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(RestaurantServiceServer).GetAllRestaurantItems(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: RestaurantService_GetAllRestaurantItems_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RestaurantServiceServer).GetAllRestaurantItems(ctx, req.(*GetAllRestaurantItemsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _RestaurantService_GetAllRestaurants_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetAllRestaurantsRequest)
 	if err := dec(in); err != nil {
@@ -387,10 +363,6 @@ var RestaurantService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateRestaurantItem",
 			Handler:    _RestaurantService_UpdateRestaurantItem_Handler,
-		},
-		{
-			MethodName: "GetAllRestaurantItems",
-			Handler:    _RestaurantService_GetAllRestaurantItems_Handler,
 		},
 		{
 			MethodName: "GetAllRestaurants",
