@@ -6,49 +6,47 @@ import (
 	"restaurant-micro/config"
 	"restaurant-micro/model"
 	restaurantpb "restaurant-micro/proto/restaurant"
-
-	"google.golang.org/grpc/codes"
+	"strconv"
 )
 
-func (*RestaurantService) AddRestaurantItem(ctx context.Context, response *restaurantpb.AddRestaurantItemRequest) (*restaurantpb.AddRestaurantItemResponse, error) {
+func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restaurantpb.AddRestaurantItemRequest) (*restaurantpb.AddRestaurantItemResponse, error) {
 	// Get the user email from the context
 	userEmail, ok := ctx.Value("userEmail").(string)
 	if !ok {
 		fmt.Println("Failed to get user email from context")
 		return &restaurantpb.AddRestaurantItemResponse{
 			Message:    "",
-			StatusCode: int64(codes.Internal),
+			StatusCode: 500,
 			Error:      "Internal Server Error",
 		}, nil
 	}
 	var restaurantItem model.RestaurantItem
-	if !config.ValidateRestaurantItemFields(response.RestaurantItemName, response.RestaurantItemImageUrl) {
-		return &restaurantpb.AddRestaurantItemResponse{
-			Message:    "",
-			StatusCode: int64(codes.InvalidArgument),
-			Error:      "Invalid restaurant item fields",
-		}, nil
-	}
-	restaurantItem.ItemName = response.RestaurantItemName
-	restaurantItem.ItemPrice = response.RestaurantItemPrice
-	restaurantItem.ImageUrl = response.RestaurantItemImageUrl
+	restaurantItem.ItemPrice = request.RestaurantItem.RestaurantItemPrice
+	restaurantItem.ImageUrl = request.RestaurantItem.RestaurantItemImageUrl
+	restaurantItem.ItemName = request.RestaurantItem.RestaurantItemName
+	restaurantItem.Category = request.RestaurantItem.RestaurantItemCategory
+	restaurantItem.CuisineType = request.RestaurantItem.RestaurantItemCuisineType
+	restaurantItem.Veg = request.RestaurantItem.RestaurantItemVeg
 
-	if response.RestaurantName == "" {
+	if !config.ValidateRestaurantItemFields(restaurantItem.ItemName,
+		restaurantItem.ImageUrl, restaurantItem.ItemPrice, restaurantItem.Category,
+		restaurantItem.CuisineType, request.RestaurantItem.RestaurantName) {
 		return &restaurantpb.AddRestaurantItemResponse{
-			Message:    "",
+			Message:    "Invalid restaurant item data provided.",
 			StatusCode: 400,
-			Error:      "Restaurant name is required",
+			Error:      "Bad Request",
 		}, nil
 	}
+
 	// fetch restaurant from restaurantDB
 	var restaurant model.Restaurant
-	primaryKey := restaurantDBConnector.Where("name = ?", response.RestaurantName).First(&restaurant)
+	primaryKey := restaurantDBConnector.Where("name = ?", request.RestaurantItem.RestaurantName).First(&restaurant)
 	// check if the restaurant is exist or nor
-	if primaryKey.Error != nil || restaurant.RestaurantOwnerMail != userEmail{
+	if primaryKey.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
 		return &restaurantpb.AddRestaurantItemResponse{
-			Message:    "",
-			StatusCode: int64(codes.NotFound),
-			Error:      "Restaurant Does not exist OR you are not the owner of this restaurant",
+			Message:    "You are not authorized to modify this restaurant's data Or Restaurant does not exist",
+			StatusCode: 403,
+			Error:      "Forbidden",
 		}, nil
 	}
 	restaurantItem.RestaurantId = restaurant.ID
@@ -56,15 +54,19 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, response *resta
 	result := restaurantItemDBConnector.Create(&restaurantItem)
 	// Check if there is an error while creating the restaurant item
 	if result.Error != nil {
-		fmt.Println(result.Error)
 		return &restaurantpb.AddRestaurantItemResponse{
-			Message:    "",
-			StatusCode: int64(codes.Internal),
-			Error:      "Food Item is already exist",
+			Message:    "A food item with similar details might already exist on this restaurant's menu.",
+			StatusCode: 409,
+			Error:      "Food item creation failed",
 		}, nil
 	}
 	// Return a success message if the restaurant item is created successfully
+	restaurantItemResponse := request.RestaurantItem
+	restaurantItemResponse.RestaurantItemId = strconv.FormatUint(uint64(restaurantItem.ID), 10)
 	return &restaurantpb.AddRestaurantItemResponse{
+		Data: &restaurantpb.AddRestaurantItemResponseData{
+			RestaurantItem: restaurantItemResponse,
+		},
 		Message:    "Restaurant item added successfully",
 		StatusCode: 200,
 		Error:      "",

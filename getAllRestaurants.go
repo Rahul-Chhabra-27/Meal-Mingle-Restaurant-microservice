@@ -5,24 +5,38 @@ import (
 	"fmt"
 	"restaurant-micro/model"
 	restaurantpb "restaurant-micro/proto/restaurant"
+	"strconv"
 )
 
-func (*RestaurantService) GetAllRestaurants(context.Context, *restaurantpb.GetAllRestaurantsRequest) (*restaurantpb.GetAllRestaurantsResponse, error) {
-	var restaurants []model.Restaurant
-	err := restaurantDBConnector.Find(&restaurants)
-	if err.Error != nil {
-		fmt.Println("[ GetAllRestaurants ] Failed to get restaurants from the database", err.Error)
+func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restaurantpb.GetAllRestaurantsRequest) (*restaurantpb.GetAllRestaurantsResponse, error) {
+
+	// get the user mail from the context
+	userEmail, ok := ctx.Value("userEmail").(string)
+	if !ok {
+		fmt.Println("Failed to get user email from context")
 		return &restaurantpb.GetAllRestaurantsResponse{
-			Data: &restaurantpb.GetAllRestaurantsData{
-				TotalRestaurants: 0,
-				Restaurants:      nil,
-			},
-			Message:    "",
+			Data:       nil,
+			Message:    "Failed to get user email from context",
 			StatusCode: 500,
 			Error:      "Internal Server Error",
 		}, nil
 	}
 
+	var restaurants []model.Restaurant
+	err := restaurantDBConnector.Where("restaurant_owner_mail = ?", userEmail).Find(&restaurants).Error
+	
+	if err != nil {
+		fmt.Println("[ GetAllRestaurants ] Failed to get restaurants from the database", err)
+		return &restaurantpb.GetAllRestaurantsResponse{
+			Data: &restaurantpb.GetAllRestaurantsData{
+				TotalRestaurants: 0,
+				Restaurants:      nil,
+			},
+			Message:    "Failed to get the restaurants to the database. Please try again later.",
+			StatusCode: 500,
+			Error:      "Internal Server Error",
+		}, nil
+	}
 	restaurantsResponse := []*restaurantpb.Restaurant{}
 	totalRestaurants := 0
 	for _, restaurant := range restaurants {
@@ -43,6 +57,7 @@ func (*RestaurantService) GetAllRestaurants(context.Context, *restaurantpb.GetAl
 			}, nil
 		}
 		restaurantsResponse = append(restaurantsResponse, &restaurantpb.Restaurant{
+			RestaurantId:             strconv.FormatUint(uint64(restaurant.ID), 10),
 			RestaurantName:           restaurant.Name,
 			RestaurantAvailability:   restaurant.Availability,
 			RestaurantRating:         restaurant.Rating,

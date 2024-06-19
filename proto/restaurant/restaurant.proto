@@ -11,71 +11,69 @@ message Address {
     string country = 4;
 }
 message Restaurant {
-    string restaurantName = 1;
-    Address restaurantAddress = 2;
-    string restaurantPhoneNumber = 3;
-    string restaurantAvailability = 4;
-    float  restaurantRating = 5;
-    string restaurantImageUrl = 6;
-    string restaurantOwnerMail = 7;
-    string restaurantOperationDays =8;
-    string restaurantOperationHours =9;
+    string restaurantId = 1;
+    string restaurantName = 2;
+    Address restaurantAddress = 3;
+    string restaurantPhoneNumber = 4;
+    string restaurantAvailability = 5;
+    float  restaurantRating = 6;
+    string restaurantImageUrl =7;
+    string restaurantOwnerMail = 8;
+    string restaurantOperationDays =9;
+    string restaurantOperationHours =10;
 }
 message RestaurantItem {
-    string restaurantItemName = 1;
-    int64 restaurantItemPrice = 2;
-    string restaurantItemCategory = 3;
-    string restaurantItemCuisineType = 4;
-    string restaurantName = 5;
-    bool   restaurantItemVeg = 6;
-    string restaurantItemImageUrl = 7;
+    string restaurantItemId = 1;
+    string restaurantItemName = 2;
+    int64  restaurantItemPrice = 3;
+    string restaurantItemCategory = 4;
+    string restaurantItemCuisineType = 5;
+    string restaurantName = 6;
+    bool   restaurantItemVeg = 7;
+    string restaurantItemImageUrl = 8;
 }
-message addRestaurantData {
+message AddRestaurantData {
     Restaurant restaurant = 1;
 }
-message getAllRestaurantsData {
+message GetAllRestaurantsData {
     int64 totalRestaurants = 1;
     repeated Restaurant restaurants = 2;
 }
-message restaurantItemData {
-    int64 totalRestaurantItems = 1;
-    repeated RestaurantItem restaurantItems = 2;
-    string restaurantName = 3;
-}
+
 message AddRestaurantRequest {
     Restaurant restaurant = 1;
 }
 
 message AddRestaurantResponse {
-    addRestaurantData data = 1;
+    AddRestaurantData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
 }
 
 message UpdateRestaurantRequest {
-    string restaurantName = 1;
-    string restaurantAddress = 2;
-    string restaurantPhone = 3;
-    string restaurantAvailability = 4;
-    string restaurantCity = 5;
-    string restaurantImageUrl = 6;
+    Restaurant restaurant = 1;
+}
+message UpdateRestaurantData {
+    Restaurant restaurant = 1;
 }
 message UpdateRestaurantResponse {
-    string message = 1;
-    int64 statusCode = 2;
-    string error = 3;
+    UpdateRestaurantData data = 1;
+    string message = 2;
+    int64 statusCode = 3;
+    string error = 4;
+}
+message AddRestaurantItemResponseData {
+    RestaurantItem restaurantItem = 1;
 }
 message AddRestaurantItemRequest {
-    string restaurantItemName = 1;
-    int64 restaurantItemPrice = 2;
-    string restaurantName = 3;
-    string restaurantItemImageUrl = 4;
+    RestaurantItem restaurantItem = 1;
 }
 message AddRestaurantItemResponse {
-    string message = 1;
-    int64 statusCode = 2;
-    string error = 3;
+    AddRestaurantItemResponseData data = 1;
+    string message = 2;
+    int64 statusCode = 3;
+    string error = 4;
 }
 message UpdateRestaurantItemRequest {
     string restaurantItemName = 1;
@@ -100,7 +98,7 @@ message UpdateRestaurantItemResponse {
 message GetAllRestaurantsRequest {}
 
 message GetAllRestaurantsResponse {
-    getAllRestaurantsData data = 1;
+    GetAllRestaurantsData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
@@ -117,8 +115,12 @@ message DeleteRestaurantItemResponse {
 message GetRestaurantsByCityRequest {
     string city = 1;
 }
+message GetRestaurantsByCityData {
+    repeated Restaurant restaurants = 1;
+    int64 totalRestaurants = 2;
+}
 message GetRestaurantsByCityResponse {
-    getAllRestaurantsData data = 1;
+    GetRestaurantsByCityData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;

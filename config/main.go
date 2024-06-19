@@ -44,24 +44,29 @@ func ConnectDB() (*gorm.DB, *gorm.DB, *gorm.DB,error) {
 		panic("failed to connect database")
 	}
 	restaurantAddress.AutoMigrate(&model.Address{})
-	
+
 	return restaurantDB, restaurantitemDB, restaurantAddress, nil;
 }
 
-func ValidateRestaurantFields(RestaurantName string, RestaurantAddress model.Address, RestaurantPhone string, RestaurantAvailability string, RestaurantImageUrl string) bool {
+func ValidateRestaurantFields(RestaurantName string, RestaurantAddress model.Address, 
+	RestaurantPhone string, RestaurantAvailability string,
+	RestaurantImageUrl string, RestaurantOperationHours string, RestaurantOperationDays string) bool {
 
 	if RestaurantImageUrl == "" || RestaurantName == "" || RestaurantAddress.City == "" ||
 		RestaurantAddress.Country == "" || RestaurantAddress.Pincode == "" ||
 		RestaurantAddress.StreetName == "" || RestaurantPhone == "" ||
-		RestaurantAvailability == "" {
+		RestaurantAvailability == "" || RestaurantOperationHours == "" || RestaurantOperationDays == ""{
 		return false
 	}
 	return true
 }
 
-func ValidateRestaurantItemFields(RestaurantItemName string, RestaurantItemImageUrl string) bool {
-	fmt.Println(RestaurantItemName, RestaurantItemImageUrl)
-	if RestaurantItemName == "" || RestaurantItemImageUrl == "" {
+func ValidateRestaurantItemFields(RestaurantItemName string, RestaurantItemImageUrl string,
+	RestaurantItemPrice int64, RestaurantItemCategory string, 
+	RestaurantItemCuisine string, RestaurantName string) bool {
+	
+	if RestaurantItemName == "" || RestaurantItemImageUrl == "" || RestaurantItemPrice == 0 ||
+		RestaurantItemCategory == "" || RestaurantItemCuisine == "" || RestaurantName == ""{
 		return false
 	}
 	return true

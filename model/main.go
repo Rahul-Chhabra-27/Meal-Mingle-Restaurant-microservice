@@ -53,6 +53,8 @@ type RestaurantItem struct {
     ItemName string `gorm:"type:varchar(255);uniqueIndex:idx_restaurant_items"`
     ItemPrice int64
     ImageUrl string
-	// restuarant-item category...
     RestaurantId uint  `gorm:"foreignKey:RestaurantId;references:ID;uniqueIndex:idx_restaurant_items"` // foreign key referencing the primary key of the Restaurant table
+	Category string
+	CuisineType string
+	Veg bool
 }

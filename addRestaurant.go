@@ -6,6 +6,7 @@ import (
 	"restaurant-micro/config"
 	"restaurant-micro/model"
 	restaurantpb "restaurant-micro/proto/restaurant"
+	"strconv"
 )
 
 func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurantpb.AddRestaurantRequest) (*restaurantpb.AddRestaurantResponse, error) {
@@ -14,7 +15,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 		fmt.Println("Failed to get user email from context")
 		return &restaurantpb.AddRestaurantResponse{Message: "", Error: "Internal Server Error", StatusCode: int64(500)}, nil
 	}
-	var restaurantAddress model.Address;
+	var restaurantAddress model.Address
 	var restaurant model.Restaurant
 
 	restaurant.Name = request.Restaurant.RestaurantName
@@ -30,7 +31,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 	restaurantAddress.Pincode = request.Restaurant.RestaurantAddress.Pincode
 	restaurantAddress.StreetName = request.Restaurant.RestaurantAddress.StreetName
 
-	if !config.ValidateRestaurantFields(restaurant.Name, restaurantAddress, restaurant.Phone, restaurant.Availability, restaurant.ImageUrl) {
+	if !config.ValidateRestaurantFields(restaurant.Name, restaurantAddress, restaurant.Phone, restaurant.Availability, restaurant.ImageUrl, restaurant.OperationDays, restaurant.OperationHours) {
 
 		return &restaurantpb.AddRestaurantResponse{
 			Message:    "Invalid restaurant data provided.Some fields might be missing or invalid",
@@ -38,14 +39,6 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 			Error:      "Bad Request",
 		}, nil
 	}
-	if !config.ValidateAddressFields(restaurantAddress.City, restaurantAddress.Country, restaurantAddress.Pincode, restaurantAddress.StreetName) {
-		return &restaurantpb.AddRestaurantResponse{
-			Message:    "Invalid address format. Please check the address details.Some fields might be missing or invalid.",
-			StatusCode: 400,
-			Error:   "Bad Request",
-		}, nil
-	}
-
 	if !config.ValidateRestaurantPhone(restaurant.Phone) {
 		return &restaurantpb.AddRestaurantResponse{
 			Message:    "Invalid phone number format",
@@ -53,7 +46,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 			Error:      "Bad Request",
 		}, nil
 	}
-	
+
 	restaurantNotFoundErr := restaurantDBConnector.Where("name = ?", restaurant.Name).First(&restaurant).Error
 
 	if restaurantNotFoundErr == nil {
@@ -67,7 +60,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 	if primaryKey.Error != nil {
 		return &restaurantpb.AddRestaurantResponse{
 			Message:    "Failed to add restaurant",
-			StatusCode: 500,
+			StatusCode: 409,
 			Error:      "The provided phone number is already associated with an account",
 		}, nil
 	}
@@ -81,24 +74,12 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 			Error:      err.Error.Error(),
 		}, nil
 	}
+	RestaurantResponse := request.Restaurant
+	RestaurantResponse.RestaurantId = strconv.FormatUint(uint64(restaurant.ID), 10)
+
 	return &restaurantpb.AddRestaurantResponse{
-		Data: 	 &restaurantpb.AddRestaurantData{
-			Restaurant: &restaurantpb.Restaurant{
-				RestaurantName: 	   restaurant.Name,
-				RestaurantPhoneNumber: restaurant.Phone,
-				RestaurantRating:      restaurant.Rating,
-				RestaurantImageUrl:    restaurant.ImageUrl,
-				RestaurantOperationDays: restaurant.OperationDays,
-				RestaurantOperationHours: restaurant.OperationHours,
-				RestaurantAvailability: restaurant.Availability,
-				RestaurantOwnerMail:  restaurant.RestaurantOwnerMail,
-				RestaurantAddress: &restaurantpb.Address{
-					City:      restaurantAddress.City,
-					Country:   restaurantAddress.Country,
-					Pincode:   restaurantAddress.Pincode,
-					StreetName: restaurantAddress.StreetName,
-				},	
-			},
+		Data: &restaurantpb.AddRestaurantData{
+			Restaurant: RestaurantResponse,
 		},
 		Message:    "Restaurant added successfully",
 		StatusCode: 200,
