@@ -75,16 +75,17 @@ message AddRestaurantItemResponse {
     int64 statusCode = 3;
     string error = 4;
 }
+message UpdateRestaurantItemResponseData {
+    RestaurantItem restaurantItem = 1;
+}
 message UpdateRestaurantItemRequest {
-    string restaurantItemName = 1;
-    int64 restaurantItemPrice = 2;
-    string restaurantName = 3;
-    string restaurantItemImageUrl = 4;
+    RestaurantItem restaurantItem = 1;
 }
 message UpdateRestaurantItemResponse {
-    string message = 1;
-    int64 statusCode = 2;
-    string error = 3;
+    UpdateRestaurantItemResponseData data = 1;
+    string message = 2;
+    int64 statusCode = 3;
+    string error = 4;
 }
 message GetAllRestaurantItemsData {
     repeated RestaurantItem restaurantItems = 1;
@@ -128,11 +129,15 @@ message GetRestaurantsByCityResponse {
     int64 statusCode = 3;
     string error = 4;
 }
+message GetRestaurantsByRestaurantItemResponseData {
+    repeated Restaurant restaurants = 1;
+    int64 totalRestaurants = 2;
+}
 message GetRestaurantsByRestaurantItemRequest {
     string restaurantItemName = 1;
 }
 message GetRestaurantsByRestaurantItemResponse {
-    repeated Restaurant restaurants = 1;
+    GetRestaurantsByRestaurantItemResponseData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;

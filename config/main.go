@@ -65,7 +65,7 @@ func ValidateRestaurantItemFields(RestaurantItemName string, RestaurantItemImage
 	RestaurantItemPrice int64, RestaurantItemCategory string, 
 	RestaurantItemCuisine string, RestaurantName string) bool {
 	
-	if RestaurantItemName == "" || RestaurantItemImageUrl == "" || RestaurantItemPrice == 0 ||
+	if RestaurantItemName == "" || RestaurantItemImageUrl == "" || RestaurantItemPrice <= 0 ||
 		RestaurantItemCategory == "" || RestaurantItemCuisine == "" || RestaurantName == ""{
 		return false
 	}

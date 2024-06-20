@@ -1,66 +1,78 @@
 package main
 
-// import (
-// 	"context"
-// 	"restaurant-micro/config"
-// 	"restaurant-micro/model"
-// 	restaurantpb "restaurant-micro/proto/restaurant"
+import (
+	"context"
+	"restaurant-micro/config"
+	"restaurant-micro/model"
+	restaurantpb "restaurant-micro/proto/restaurant"
+	"strconv"
+)
 
-// 	"google.golang.org/grpc/codes"
-// )
+func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *restaurantpb.UpdateRestaurantItemRequest) (*restaurantpb.UpdateRestaurantItemResponse, error) {
+	// get the user email from the context
+	userEmail, ok := ctx.Value("userEmail").(string)
+	if !ok {
+		return &restaurantpb.UpdateRestaurantItemResponse{
+			Message:    "Failed to get user email from context",
+			StatusCode: 500,
+			Error:      "Internal Server Error",
+		}, nil
+	}
+	// validate the restaurant item fields
+	if !config.ValidateRestaurantItemFields(request.RestaurantItem.RestaurantItemName,
+		strconv.FormatInt(request.RestaurantItem.RestaurantItemPrice, 10),
+		request.RestaurantItem.RestaurantItemPrice, request.RestaurantItem.GetRestaurantItemCategory(),
+		request.RestaurantItem.RestaurantItemCuisineType, request.RestaurantItem.RestaurantItemImageUrl) {
+		return &restaurantpb.UpdateRestaurantItemResponse{
+			Message:    "Invalid restaurant item data provided.Some fields might be missing or invalid",
+			StatusCode: 400,
+			Error:      "Invalid restaurant item fields",
+		}, nil
+	}
+	// fetch restaurant from restaurantDB
+	var restaurant model.Restaurant
+	primaryKeyRes := restaurantDBConnector.Where("name = ?", request.RestaurantItem.RestaurantName).First(&restaurant)
+	// check if the restaurant is exist or nor
+	if primaryKeyRes.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
+		return &restaurantpb.UpdateRestaurantItemResponse{
+			Message:    "Restaurant Does not exist OR you are not the owner of this restaurant",
+			StatusCode: 404,
+			Error:      "Resource not found or forbidden",
+		}, nil
+	}
 
-// func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *restaurantpb.UpdateRestaurantItemRequest) (*restaurantpb.UpdateRestaurantItemResponse, error) {
-// 	// get the user email from the context
-// 	userEmail, ok := ctx.Value("userEmail").(string)
-// 	if !ok {
-// 		return &restaurantpb.UpdateRestaurantItemResponse{
-// 			Message:    "",
-// 			StatusCode: int64(codes.Internal),
-// 			Error:      "Internal Server Error",
-// 		}, nil
-// 	}
-// 	// fetch restaurant from restaurantDB
-// 	var restaurant model.Restaurant
-// 	primaryKeyRes := restaurantDBConnector.Where("name = ?", request.RestaurantName).First(&restaurant)
-// 	// check if the restaurant is exist or nor
-// 	if primaryKeyRes.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
-// 		return &restaurantpb.UpdateRestaurantItemResponse{
-// 			Message:    "",
-// 			StatusCode: int64(codes.NotFound),
-// 			Error:      "Restaurant Does not exist OR you are not the owner of this restaurant",
-// 		}, nil
-// 	}
+	var restaurantItem model.RestaurantItem
+	primaryKey := restaurantItemDBConnector.Where("id = ? AND restaurant_id = ?", request.RestaurantItem.RestaurantItemId,
+		restaurant.ID).First(&restaurantItem)
 
-// 	var restaurantItem model.RestaurantItem
-// 	primaryKey := restaurantItemDBConnector.Where("item_name = ? AND restaurant_id = ?", request.RestaurantItemName, restaurant.ID).First(&restaurantItem)
-// 	if primaryKey.Error != nil {
-// 		return &restaurantpb.UpdateRestaurantItemResponse{
-// 			Message:    "",
-// 			StatusCode: int64(codes.Internal),
-// 			Error:      "Restaurant item does not exist",
-// 		}, nil
-// 	}
-// 	if !config.ValidateRestaurantItemFields(request.RestaurantItemName, request.RestaurantItemImageUrl) {
-// 		return &restaurantpb.UpdateRestaurantItemResponse{
-// 			Message:    "",
-// 			StatusCode: int64(codes.InvalidArgument),
-// 			Error:      "Invalid restaurant item fields",
-// 		}, nil
-// 	}
-// 	restaurantItem.ItemName = request.RestaurantItemName
-// 	restaurantItem.ItemPrice = request.RestaurantItemPrice
-// 	restaurantItem.ImageUrl = request.RestaurantItemImageUrl
-// 	err := restaurantItemDBConnector.Save(&restaurantItem)
-// 	if err.Error != nil {
-// 		return &restaurantpb.UpdateRestaurantItemResponse{
-// 			Message:    "",
-// 			StatusCode: 500,
-// 			Error:      "Failed to update restaurant item",
-// 		}, nil
-// 	}
-// 	return &restaurantpb.UpdateRestaurantItemResponse{
-// 		Message:    "Restaurant item updated successfully",
-// 		StatusCode: 200,
-// 		Error:      "",
-// 	}, nil
-// }
+	if primaryKey.Error != nil {
+		return &restaurantpb.UpdateRestaurantItemResponse{
+			Message:    "Restaurant Item does not exist",
+			StatusCode: 404,
+			Error:      "Bad Request",
+		}, nil
+	}
+	restaurantItem.ItemName = request.RestaurantItem.RestaurantItemName
+	restaurantItem.ItemPrice = request.RestaurantItem.RestaurantItemPrice
+	restaurantItem.Category = request.RestaurantItem.GetRestaurantItemCategory()
+	restaurantItem.CuisineType = request.RestaurantItem.RestaurantItemCuisineType
+	restaurantItem.Veg = request.RestaurantItem.RestaurantItemVeg
+	restaurantItem.ImageUrl = request.GetRestaurantItem().GetRestaurantItemImageUrl()
+
+	err := restaurantItemDBConnector.Save(&restaurantItem)
+	if err.Error != nil {
+		return &restaurantpb.UpdateRestaurantItemResponse{
+			Message:    "Failed to update restaurant item",
+			StatusCode: 500,
+			Error:      "Internal Server Error",
+		}, nil
+	}
+	return &restaurantpb.UpdateRestaurantItemResponse{
+		Data: &restaurantpb.UpdateRestaurantItemResponseData{
+			RestaurantItem: request.RestaurantItem,
+		},
+		Message:    "Restaurant item updated successfully",
+		StatusCode: 200,
+		Error:      "",
+	}, nil
+}
