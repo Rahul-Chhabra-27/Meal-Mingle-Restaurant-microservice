@@ -86,15 +86,18 @@ message UpdateRestaurantItemResponse {
     int64 statusCode = 2;
     string error = 3;
 }
-// message GetAllRestaurantItemsRequest {
-//     repeated Restaurant restaurants = 1;
-// }
-// message GetAllRestaurantItemsResponse {
-//     restaurantItemData data = 1;
-//     string message = 2;
-//     int64 statusCode = 3;
-//     string error = 4;
-// }
+message GetAllRestaurantItemsData {
+    repeated RestaurantItem restaurantItems = 1;
+}
+message GetAllRestaurantItemsRequest {
+    string restaurantId = 1;
+}
+message GetAllRestaurantItemsResponse {
+    GetAllRestaurantItemsData data = 1;
+    string message = 2;
+    int64 statusCode = 3;
+    string error = 4;   
+}
 message GetAllRestaurantsRequest {}
 
 message GetAllRestaurantsResponse {
@@ -159,11 +162,11 @@ service RestaurantService {
             body: "*"
         };
     }
-    // rpc GetAllRestaurantItems(GetAllRestaurantItemsRequest) returns (GetAllRestaurantItemsResponse){
-    //     option (google.api.http) = {
-    //         get: "/api/restaurant/{restaurantName}/items"
-    //     };
-    // }
+    rpc GetAllRestaurantItems(GetAllRestaurantItemsRequest) returns (GetAllRestaurantItemsResponse){
+        option (google.api.http) = {
+            get: "/api/restaurant/{restaurantId}/items"
+        };
+    }
     rpc GetAllRestaurants(GetAllRestaurantsRequest) returns (GetAllRestaurantsResponse){
         option (google.api.http) = {
             get: "/api/restaurants"
