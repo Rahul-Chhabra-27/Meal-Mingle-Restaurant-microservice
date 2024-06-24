@@ -19,7 +19,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 		}, nil
 	}
 	// validate the restaurant item fields
-	if !config.ValidateRestaurantItemFields(request.RestaurantItem.RestaurantItemName,
+	if request.RestaurantItem == nil || !config.ValidateRestaurantItemFields(request.RestaurantItem.RestaurantItemName,
 		strconv.FormatInt(request.RestaurantItem.RestaurantItemPrice, 10),
 		request.RestaurantItem.RestaurantItemPrice, request.RestaurantItem.GetRestaurantItemCategory(),
 		request.RestaurantItem.RestaurantItemCuisineType, request.RestaurantItem.RestaurantItemImageUrl) {
@@ -35,7 +35,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 	// check if the restaurant is exist or nor
 	if primaryKeyRes.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
 		return &restaurantpb.UpdateRestaurantItemResponse{
-			Message:    "Restaurant Does not exist OR you are not the owner of this restaurant",
+			Message:    "You do not have permission to perform this action. Only restaurant owner can update the restaurant item",
 			StatusCode: 404,
 			Error:      "Resource not found or forbidden",
 		}, nil
@@ -44,7 +44,6 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 	var restaurantItem model.RestaurantItem
 	primaryKey := restaurantItemDBConnector.Where("id = ? AND restaurant_id = ?", request.RestaurantItem.RestaurantItemId,
 		restaurant.ID).First(&restaurantItem)
-
 	if primaryKey.Error != nil {
 		return &restaurantpb.UpdateRestaurantItemResponse{
 			Message:    "Restaurant Item does not exist",
@@ -62,7 +61,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 	err := restaurantItemDBConnector.Save(&restaurantItem)
 	if err.Error != nil {
 		return &restaurantpb.UpdateRestaurantItemResponse{
-			Message:    "Failed to update restaurant item",
+			Message:    "Failed to update restaurant item, this can be due to same item name already exist in the restaurant or some other issue.",
 			StatusCode: 500,
 			Error:      "Internal Server Error",
 		}, nil

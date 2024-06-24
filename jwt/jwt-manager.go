@@ -21,6 +21,7 @@ type JWTManager struct {
 type UserClaims struct {
 	jwt.StandardClaims
 	UserEmail string 
+	UserRole  string
 }
 
 func NewJWTManager(secretKey string, tokenDuration time.Duration) (*JWTManager, error) {
@@ -55,6 +56,10 @@ func VerifyToken(accessToken string) (*UserClaims, error) {
 // Middleware to check if the user is authenticated or not by checking the JWT token provided in the request
 func UnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 	// skip the authentication for the health check endpoint for GetAllRestaurants
+	if info.FullMethod == "/proto.RestaurantService/GetRestaurantsByRestaurantsItem" {
+		return handler(ctx, req)
+	}
+
 	if info.FullMethod == "/proto.RestaurantService/GetAllRestaurantItems" {
 		return handler(ctx, req)
 	}
@@ -77,6 +82,7 @@ func UnaryInterceptor(ctx context.Context, req any, info *grpc.UnaryServerInfo, 
 	}
 	// Pass useremail to context for further use
 	ctx = context.WithValue(ctx, "userEmail", claims.UserEmail)
+	ctx = context.WithValue(ctx, "userRole", claims.UserRole)
 	// Proceed with the request
 	return handler(ctx, req)
 }

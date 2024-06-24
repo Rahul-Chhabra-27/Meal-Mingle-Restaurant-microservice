@@ -20,51 +20,56 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 			Error:      "Internal Server Error",
 		}, nil
 	}
-	// fetch restaurant from restaurantDB
 	var restaurant model.Restaurant
+	var restaurantAddress model.Address
+	if request.Restaurant == nil || request.Restaurant.GetRestaurantAddress() == nil {
+		return &restaurantpb.UpdateRestaurantResponse{
+			Message:    "Invalid restaurant data provided",
+			StatusCode: 400,
+			Error:      "Bad Request",
+		}, nil
+	} else {
+		restaurantAddress.City = request.Restaurant.RestaurantAddress.City
+		restaurantAddress.Country = request.Restaurant.RestaurantAddress.Country
+		restaurantAddress.Pincode = request.Restaurant.RestaurantAddress.Pincode
+		restaurantAddress.StreetName = request.Restaurant.RestaurantAddress.StreetName
+	}
+	if !config.ValidateRestaurantFields(
+		request.Restaurant.RestaurantName, restaurantAddress,  
+		request.Restaurant.RestaurantPhoneNumber, 
+		request.Restaurant.RestaurantAvailability, request.Restaurant.RestaurantImageUrl, 
+		request.Restaurant.RestaurantOperationHours, 
+		request.Restaurant.RestaurantOperationDays,
+		request.Restaurant.RestaurantRating) || 
+		!config.ValidateRestaurantPhone(request.Restaurant.RestaurantPhoneNumber) {
+		return &restaurantpb.UpdateRestaurantResponse{
+			Message:   "Invalid restaurant data provided.Some fields might be missing, empty or invalid, and make sure phone number contains only numbers and is 10 digits long",
+			StatusCode: 400,
+			Error:  "Invalid restaurant fields",
+		}, nil
+	}
+	// fetch restaurant from restaurantDB
 	primaryKeyRes := restaurantDBConnector.Where("id = ?", request.Restaurant.RestaurantId).First(&restaurant)
-
 	// check if the restaurant is exist or not
 	if primaryKeyRes.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
 		return &restaurantpb.UpdateRestaurantResponse{
 			Data: 	 nil,
-			Message:    "The requested restaurant does not exist or you do not have permission to access it.",
-			StatusCode: 404,
-			Error:      "Resource not found or forbidden",
+			Message:    "You do not have permission to perform this action. Only restaurant owner can update the restaurant",
+			StatusCode: 401,
+			Error:      "Unauthorized",
 		}, nil
 	}
-	// fetch the restaurant Address
-	var restaurantAddress model.Address
-	restaurantAddress.City = request.Restaurant.RestaurantAddress.City
-	restaurantAddress.Country = request.Restaurant.RestaurantAddress.Country
-	restaurantAddress.Pincode = request.Restaurant.RestaurantAddress.Pincode
-	restaurantAddress.StreetName = request.Restaurant.RestaurantAddress.StreetName
-
 	err := restaurantAddressDBConnector.Where("restaurant_id = ?", restaurant.ID).First(&restaurantAddress)
 	if err.Error != nil {
 		fmt.Println("[ UpdateRestaurant ] Failed to get restaurant address from the database", err.Error)
 		return &restaurantpb.UpdateRestaurantResponse{
+			Data:       nil,
 			Message:    "Failed to get restaurant address from the database",
 			StatusCode: 500,
 			Error:      "Internal Server Error",
 		}, nil
 	}
-	if !config.ValidateRestaurantFields(restaurant.Name, restaurantAddress, restaurant.Phone, restaurant.Availability, restaurant.ImageUrl, restaurant.OperationHours, restaurant.OperationDays) {
-		return &restaurantpb.UpdateRestaurantResponse{
-			Message:    "Invalid restaurant data provided.Some fields might be missing or invalid",
-			StatusCode: 400,
-			Error:      "Invalid restaurant fields",
-		}, nil
-	}
-
-	if !config.ValidateRestaurantPhone(restaurant.Phone) {
-		return &restaurantpb.UpdateRestaurantResponse{
-			Message:    "Invalid phone number format",
-			StatusCode: 400,
-			Error:      "Bad Request",
-		}, nil
-	}
-
+	request.Restaurant.RestaurantOwnerMail = userEmail
 	restaurant.Name = request.Restaurant.RestaurantName
 	restaurant.Availability = request.Restaurant.RestaurantAvailability
 	restaurant.Phone = request.Restaurant.RestaurantPhoneNumber
@@ -73,6 +78,11 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 	restaurant.OperationDays = request.Restaurant.RestaurantOperationDays
 	restaurant.OperationHours = request.Restaurant.RestaurantOperationHours
 	restaurant.RestaurantOwnerMail = userEmail
+	
+	restaurantAddress.City = request.Restaurant.RestaurantAddress.City
+	restaurantAddress.Country = request.Restaurant.RestaurantAddress.Country
+	restaurantAddress.Pincode = request.Restaurant.RestaurantAddress.Pincode
+	restaurantAddress.StreetName = request.Restaurant.RestaurantAddress.StreetName
 
 	updateRestaurantError := restaurantDBConnector.Save(&restaurant)
 	updateAddressError := restaurantAddressDBConnector.Save(&restaurantAddress)
@@ -81,11 +91,12 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 		fmt.Println("[ UpdateRestaurant ] Failed to update restaurant", updateRestaurantError.Error)
 		fmt.Println("[ UpdateRestaurant ] Failed to update restaurant address", updateAddressError.Error)
 		return &restaurantpb.UpdateRestaurantResponse{
-			Message:    "Failed to save the item to the database. Please try again later.",
-			StatusCode: 500,
-			Error:      "Internal Server Error",
+			Message:    "A restaurant with the same name or phone number already exists.",
+			StatusCode: 409,
+			Error:      "Conflict",
 		}, nil
 	}
+	
 	return &restaurantpb.UpdateRestaurantResponse{
 		Data: &restaurantpb.UpdateRestaurantData {
 			Restaurant: request.Restaurant,

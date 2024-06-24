@@ -7,21 +7,21 @@ import (
 	"strconv"
 )
 
-func (*RestaurantService) GetRestaurantsByRestaurantsItem(ctx context.Context,
-	request *restaurantpb.GetRestaurantsByRestaurantItemRequest) (*restaurantpb.GetRestaurantsByRestaurantItemResponse, error) {
+func (*RestaurantService) GetRestaurantsByItemCategory(ctx context.Context,
+	request *restaurantpb.GetRestaurantsByItemCategoryRequest) (*restaurantpb.GetRestaurantsByItemCategoryResponse, error) {
 
-	if request.RestaurantItemName == "" {
-		return &restaurantpb.GetRestaurantsByRestaurantItemResponse{
+	if request.Category == "" {
+		return &restaurantpb.GetRestaurantsByItemCategoryResponse{
 			Data:       nil,
-			Message:    "Invalid Field, restaurant item name is required",
+			Message:    "Invalid Field, category field is required",
 			StatusCode: 400,
 			Error:      "Bad Request",
 		}, nil
 	}
 	var restaurantItems []model.RestaurantItem
-	err := restaurantItemDBConnector.Where("item_name = ?", request.RestaurantItemName).Find(&restaurantItems)
+	err := restaurantItemDBConnector.Where("category = ?", request.Category).Find(&restaurantItems)
 	if err.Error != nil {
-		return &restaurantpb.GetRestaurantsByRestaurantItemResponse{
+		return &restaurantpb.GetRestaurantsByItemCategoryResponse{
 			Data:       nil,
 			Message:    "Failed to get restaurant items",
 			StatusCode: 500,
@@ -29,15 +29,20 @@ func (*RestaurantService) GetRestaurantsByRestaurantsItem(ctx context.Context,
 		}, nil
 	}
 	// find all the restaurants that have this item
+	// Extract unique RestaurantId's from restaurantItems
+	restaurantIds := make(map[uint]bool)
 	var restaurantsResponse []*restaurantpb.Restaurant
 	for _, restaurantItem := range restaurantItems {
+		if restaurantIds[restaurantItem.RestaurantId] {
+			continue
+		}
 		var restaurant model.Restaurant
 		var restaurantAddress model.Address
 		restaurantError := restaurantDBConnector.Where("id = ?", restaurantItem.RestaurantId).First(&restaurant)
 		restaurantAddressError := restaurantAddressDBConnector.Where("restaurant_id = ?", restaurant.ID).First(&restaurantAddress)
 
 		if restaurantError.Error != nil || restaurantAddressError.Error != nil {
-			return &restaurantpb.GetRestaurantsByRestaurantItemResponse{
+			return &restaurantpb.GetRestaurantsByItemCategoryResponse{
 				Data:       nil,
 				Message:    "Failed to get restaurant or restaurant address",
 				StatusCode: 500,
@@ -61,9 +66,10 @@ func (*RestaurantService) GetRestaurantsByRestaurantsItem(ctx context.Context,
 				StreetName: restaurantAddress.StreetName,
 			},
 		})
+		restaurantIds[restaurantItem.RestaurantId] = true
 	}
-	return &restaurantpb.GetRestaurantsByRestaurantItemResponse{
-		Data: &restaurantpb.GetRestaurantsByRestaurantItemResponseData{
+	return &restaurantpb.GetRestaurantsByItemCategoryResponse{
+		Data: &restaurantpb.GetRestaurantsByItemCategoryResponseData{
 			TotalRestaurants: int64(len(restaurantsResponse)),
 			Restaurants:      restaurantsResponse,
 		},

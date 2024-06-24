@@ -1,7 +1,10 @@
 package model
 
 import "gorm.io/gorm"
-
+const (
+	AdminRole = "admin"
+	UserRole = "user"
+)
 type Restaurant struct {
 	gorm.Model 
 	Name string `gorm:"unique"`

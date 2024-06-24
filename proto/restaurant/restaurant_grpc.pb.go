@@ -19,15 +19,15 @@ import (
 const _ = grpc.SupportPackageIsVersion8
 
 const (
-	RestaurantService_AddRestaurant_FullMethodName                   = "/proto.RestaurantService/AddRestaurant"
-	RestaurantService_UpdateRestaurant_FullMethodName                = "/proto.RestaurantService/UpdateRestaurant"
-	RestaurantService_AddRestaurantItem_FullMethodName               = "/proto.RestaurantService/AddRestaurantItem"
-	RestaurantService_UpdateRestaurantItem_FullMethodName            = "/proto.RestaurantService/UpdateRestaurantItem"
-	RestaurantService_GetAllRestaurantItems_FullMethodName           = "/proto.RestaurantService/GetAllRestaurantItems"
-	RestaurantService_GetAllRestaurants_FullMethodName               = "/proto.RestaurantService/GetAllRestaurants"
-	RestaurantService_DeleteRestaurantItem_FullMethodName            = "/proto.RestaurantService/DeleteRestaurantItem"
-	RestaurantService_GetRestaurantsByCity_FullMethodName            = "/proto.RestaurantService/GetRestaurantsByCity"
-	RestaurantService_GetRestaurantsByRestaurantsItem_FullMethodName = "/proto.RestaurantService/GetRestaurantsByRestaurantsItem"
+	RestaurantService_AddRestaurant_FullMethodName                = "/proto.RestaurantService/AddRestaurant"
+	RestaurantService_UpdateRestaurant_FullMethodName             = "/proto.RestaurantService/UpdateRestaurant"
+	RestaurantService_AddRestaurantItem_FullMethodName            = "/proto.RestaurantService/AddRestaurantItem"
+	RestaurantService_UpdateRestaurantItem_FullMethodName         = "/proto.RestaurantService/UpdateRestaurantItem"
+	RestaurantService_GetAllRestaurantItems_FullMethodName        = "/proto.RestaurantService/GetAllRestaurantItems"
+	RestaurantService_GetAllRestaurants_FullMethodName            = "/proto.RestaurantService/GetAllRestaurants"
+	RestaurantService_DeleteRestaurantItem_FullMethodName         = "/proto.RestaurantService/DeleteRestaurantItem"
+	RestaurantService_GetRestaurantsByCity_FullMethodName         = "/proto.RestaurantService/GetRestaurantsByCity"
+	RestaurantService_GetRestaurantsByItemCategory_FullMethodName = "/proto.RestaurantService/GetRestaurantsByItemCategory"
 )
 
 // RestaurantServiceClient is the client API for RestaurantService service.
@@ -42,7 +42,7 @@ type RestaurantServiceClient interface {
 	GetAllRestaurants(ctx context.Context, in *GetAllRestaurantsRequest, opts ...grpc.CallOption) (*GetAllRestaurantsResponse, error)
 	DeleteRestaurantItem(ctx context.Context, in *DeleteRestaurantItemRequest, opts ...grpc.CallOption) (*DeleteRestaurantItemResponse, error)
 	GetRestaurantsByCity(ctx context.Context, in *GetRestaurantsByCityRequest, opts ...grpc.CallOption) (*GetRestaurantsByCityResponse, error)
-	GetRestaurantsByRestaurantsItem(ctx context.Context, in *GetRestaurantsByRestaurantItemRequest, opts ...grpc.CallOption) (*GetRestaurantsByRestaurantItemResponse, error)
+	GetRestaurantsByItemCategory(ctx context.Context, in *GetRestaurantsByItemCategoryRequest, opts ...grpc.CallOption) (*GetRestaurantsByItemCategoryResponse, error)
 }
 
 type restaurantServiceClient struct {
@@ -133,10 +133,10 @@ func (c *restaurantServiceClient) GetRestaurantsByCity(ctx context.Context, in *
 	return out, nil
 }
 
-func (c *restaurantServiceClient) GetRestaurantsByRestaurantsItem(ctx context.Context, in *GetRestaurantsByRestaurantItemRequest, opts ...grpc.CallOption) (*GetRestaurantsByRestaurantItemResponse, error) {
+func (c *restaurantServiceClient) GetRestaurantsByItemCategory(ctx context.Context, in *GetRestaurantsByItemCategoryRequest, opts ...grpc.CallOption) (*GetRestaurantsByItemCategoryResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(GetRestaurantsByRestaurantItemResponse)
-	err := c.cc.Invoke(ctx, RestaurantService_GetRestaurantsByRestaurantsItem_FullMethodName, in, out, cOpts...)
+	out := new(GetRestaurantsByItemCategoryResponse)
+	err := c.cc.Invoke(ctx, RestaurantService_GetRestaurantsByItemCategory_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ type RestaurantServiceServer interface {
 	GetAllRestaurants(context.Context, *GetAllRestaurantsRequest) (*GetAllRestaurantsResponse, error)
 	DeleteRestaurantItem(context.Context, *DeleteRestaurantItemRequest) (*DeleteRestaurantItemResponse, error)
 	GetRestaurantsByCity(context.Context, *GetRestaurantsByCityRequest) (*GetRestaurantsByCityResponse, error)
-	GetRestaurantsByRestaurantsItem(context.Context, *GetRestaurantsByRestaurantItemRequest) (*GetRestaurantsByRestaurantItemResponse, error)
+	GetRestaurantsByItemCategory(context.Context, *GetRestaurantsByItemCategoryRequest) (*GetRestaurantsByItemCategoryResponse, error)
 	mustEmbedUnimplementedRestaurantServiceServer()
 }
 
@@ -187,8 +187,8 @@ func (UnimplementedRestaurantServiceServer) DeleteRestaurantItem(context.Context
 func (UnimplementedRestaurantServiceServer) GetRestaurantsByCity(context.Context, *GetRestaurantsByCityRequest) (*GetRestaurantsByCityResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetRestaurantsByCity not implemented")
 }
-func (UnimplementedRestaurantServiceServer) GetRestaurantsByRestaurantsItem(context.Context, *GetRestaurantsByRestaurantItemRequest) (*GetRestaurantsByRestaurantItemResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRestaurantsByRestaurantsItem not implemented")
+func (UnimplementedRestaurantServiceServer) GetRestaurantsByItemCategory(context.Context, *GetRestaurantsByItemCategoryRequest) (*GetRestaurantsByItemCategoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetRestaurantsByItemCategory not implemented")
 }
 func (UnimplementedRestaurantServiceServer) mustEmbedUnimplementedRestaurantServiceServer() {}
 
@@ -347,20 +347,20 @@ func _RestaurantService_GetRestaurantsByCity_Handler(srv interface{}, ctx contex
 	return interceptor(ctx, in, info, handler)
 }
 
-func _RestaurantService_GetRestaurantsByRestaurantsItem_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRestaurantsByRestaurantItemRequest)
+func _RestaurantService_GetRestaurantsByItemCategory_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRestaurantsByItemCategoryRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(RestaurantServiceServer).GetRestaurantsByRestaurantsItem(ctx, in)
+		return srv.(RestaurantServiceServer).GetRestaurantsByItemCategory(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: RestaurantService_GetRestaurantsByRestaurantsItem_FullMethodName,
+		FullMethod: RestaurantService_GetRestaurantsByItemCategory_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(RestaurantServiceServer).GetRestaurantsByRestaurantsItem(ctx, req.(*GetRestaurantsByRestaurantItemRequest))
+		return srv.(RestaurantServiceServer).GetRestaurantsByItemCategory(ctx, req.(*GetRestaurantsByItemCategoryRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -405,8 +405,8 @@ var RestaurantService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _RestaurantService_GetRestaurantsByCity_Handler,
 		},
 		{
-			MethodName: "GetRestaurantsByRestaurantsItem",
-			Handler:    _RestaurantService_GetRestaurantsByRestaurantsItem_Handler,
+			MethodName: "GetRestaurantsByItemCategory",
+			Handler:    _RestaurantService_GetRestaurantsByItemCategory_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -6,28 +6,33 @@ import (
 	"restaurant-micro/model"
 	restaurantpb "restaurant-micro/proto/restaurant"
 	"strconv"
-	"strings"
 )
 
 func (*RestaurantService) GetRestaurantsByCity(ctx context.Context, request *restaurantpb.GetRestaurantsByCityRequest) (*restaurantpb.GetRestaurantsByCityResponse, error) {
 
+	if request.City == "" {
+		return &restaurantpb.GetRestaurantsByCityResponse{
+			Data:       nil,
+			Message:    "Invalid Field, city field is required",
+			StatusCode: 400,
+			Error:      "Bad Request",
+		}, nil
+	}
 	city := request.City
-	city = strings.ReplaceAll(city, "-", " ")
 	var restaurantAddress []model.Address
 	err := restaurantAddressDBConnector.Where("city = ?", city).Find(&restaurantAddress)
 	if err.Error != nil {
 		fmt.Println("[ GetRestaurantsByCity ] Failed to get restaurants from the database", err.Error)
 		return &restaurantpb.GetRestaurantsByCityResponse{
 			Data:       nil,
-			Message:    "",
+			Message:    "Failed to get restaurants from the database",
 			StatusCode: 500,
 			Error:      "Internal Server Error",
 		}, nil
 	}
+	
 	var restaurantsResponse []*restaurantpb.Restaurant
-	totalRestaurants := 0
 	for _, address := range restaurantAddress {
-		totalRestaurants++
 		// fetch all restaurant details from the database filter by city.
 		var restaurant model.Restaurant
 		restaurantErr := restaurantDBConnector.Where("id = ?", address.RestaurantId).First(&restaurant).Error
@@ -35,7 +40,7 @@ func (*RestaurantService) GetRestaurantsByCity(ctx context.Context, request *res
 			fmt.Println("[ GetRestaurantsByCity ] Failed to get restaurant from the database", restaurantErr)
 			return &restaurantpb.GetRestaurantsByCityResponse{
 				Data:       nil,
-				Message:    "",
+				Message:    "Failed to get restaurant from the database",
 				StatusCode: 500,
 				Error:      "Internal Server Error",
 			}, nil
@@ -59,9 +64,9 @@ func (*RestaurantService) GetRestaurantsByCity(ctx context.Context, request *res
 		})
 	}
 	return &restaurantpb.GetRestaurantsByCityResponse{
-		Data: &restaurantpb.GetRestaurantsByCityData{
-			TotalRestaurants: int64(totalRestaurants),
-			Restaurants:       restaurantsResponse,
+		Data: &restaurantpb.GetRestaurantsByCityResponseData{
+			TotalRestaurants: int64(len(restaurantsResponse)),
+			Restaurants:      restaurantsResponse,
 		},
 		Message:    "Restaurants fetched successfully",
 		StatusCode: 200,

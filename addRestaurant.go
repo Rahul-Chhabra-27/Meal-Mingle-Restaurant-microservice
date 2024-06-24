@@ -10,14 +10,42 @@ import (
 )
 
 func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurantpb.AddRestaurantRequest) (*restaurantpb.AddRestaurantResponse, error) {
-	userEmail, ok := ctx.Value("userEmail").(string)
-	if !ok {
+	userEmail, emailCtxError := ctx.Value("userEmail").(string)
+	userRole, roleCtxError := ctx.Value("userRole").(string)
+	
+	if !emailCtxError || !roleCtxError {
 		fmt.Println("Failed to get user email from context")
-		return &restaurantpb.AddRestaurantResponse{Message: "", Error: "Internal Server Error", StatusCode: int64(500)}, nil
+		return &restaurantpb.AddRestaurantResponse{ 
+			Message: "Failed to get user mail from context",
+			Error: "Internal Server Error", 
+			StatusCode: int64(500),
+		}, nil
 	}
+
+	if userRole != model.AdminRole {
+		return &restaurantpb.AddRestaurantResponse{
+			Data:       nil,
+			Message:    "You do not have permission to perform this action. Only admin can add a restaurant",
+			StatusCode: 403,
+			Error:      "Forbidden",
+		}, nil
+	}
+
 	var restaurantAddress model.Address
 	var restaurant model.Restaurant
-
+	if request.Restaurant != nil && request.Restaurant.RestaurantAddress != nil {
+		restaurantAddress.City = request.Restaurant.RestaurantAddress.City
+		restaurantAddress.Country = request.Restaurant.RestaurantAddress.Country
+		restaurantAddress.Pincode = request.Restaurant.RestaurantAddress.Pincode
+		restaurantAddress.StreetName = request.Restaurant.RestaurantAddress.StreetName
+	} else {
+		return &restaurantpb.AddRestaurantResponse{
+			Data:       nil,
+			Message:    "Invalid restaurant address data provided. Some fields might be missing or invalid",
+			StatusCode: 400,
+			Error:      "Bad Request",
+		}, nil
+	}
 	restaurant.Name = request.Restaurant.RestaurantName
 	restaurant.Availability = request.Restaurant.RestaurantAvailability
 	restaurant.Phone = request.Restaurant.RestaurantPhoneNumber
@@ -26,39 +54,42 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 	restaurant.OperationDays = request.Restaurant.RestaurantOperationDays
 	restaurant.OperationHours = request.Restaurant.RestaurantOperationHours
 	restaurant.RestaurantOwnerMail = userEmail
-	restaurantAddress.City = request.Restaurant.RestaurantAddress.City
-	restaurantAddress.Country = request.Restaurant.RestaurantAddress.Country
-	restaurantAddress.Pincode = request.Restaurant.RestaurantAddress.Pincode
-	restaurantAddress.StreetName = request.Restaurant.RestaurantAddress.StreetName
 
-	if !config.ValidateRestaurantFields(restaurant.Name, restaurantAddress, restaurant.Phone, restaurant.Availability, restaurant.ImageUrl, restaurant.OperationDays, restaurant.OperationHours) {
-
+	if !config.ValidateRestaurantFields(restaurant.Name,restaurantAddress,
+		restaurant.Phone, restaurant.Availability, 
+		restaurant.ImageUrl, restaurant.OperationDays,
+		restaurant.OperationHours, restaurant.Rating) {
 		return &restaurantpb.AddRestaurantResponse{
-			Message:    "Invalid restaurant data provided.Some fields might be missing or invalid",
+			Data: 	 nil,
+			Message:    "Invalid restaurant data provided. Some fields might be missing or invalid",
 			StatusCode: 400,
 			Error:      "Bad Request",
 		}, nil
 	}
+
 	if !config.ValidateRestaurantPhone(restaurant.Phone) {
 		return &restaurantpb.AddRestaurantResponse{
+			Data: 	 nil,
 			Message:    "Invalid phone number format",
 			StatusCode: 400,
 			Error:      "Bad Request",
 		}, nil
 	}
-
-	restaurantNotFoundErr := restaurantDBConnector.Where("name = ?", restaurant.Name).First(&restaurant).Error
-
-	if restaurantNotFoundErr == nil {
+	var existingRestaurant model.Restaurant;
+	restaurantNotFoundErr := restaurantDBConnector.Where("name = ?", restaurant.Name).First(&existingRestaurant).Error
+	if restaurantNotFoundErr == nil  {
 		return &restaurantpb.AddRestaurantResponse{
-			Message:    "A restaurant with similar details might already exist. Please check the restaurant name and try again.",
+			Data: 	 nil,
+			Message:    "Same name restaurant exists. Please check the restaurant name and try again.",
 			StatusCode: int64(409),
 			Error:      "Restaurant creation failed",
 		}, nil
 	}
 	primaryKey := restaurantDBConnector.Create(&restaurant)
 	if primaryKey.Error != nil {
+		fmt.Println("[ AddRestaurant ] Failed to add restaurant", primaryKey.Error)
 		return &restaurantpb.AddRestaurantResponse{
+			Data: 	 nil,
 			Message:    "Failed to add restaurant",
 			StatusCode: 409,
 			Error:      "The provided phone number is already associated with an account",
@@ -69,6 +100,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 	if err.Error != nil {
 		fmt.Println("[ AddRestaurant ] Failed to add restaurant address", err.Error)
 		return &restaurantpb.AddRestaurantResponse{
+			Data:       nil,
 			Message:    "Failed to add restaurant address",
 			StatusCode: 500,
 			Error:      err.Error.Error(),
@@ -78,7 +110,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 	RestaurantResponse.RestaurantId = strconv.FormatUint(uint64(restaurant.ID), 10)
 
 	return &restaurantpb.AddRestaurantResponse{
-		Data: &restaurantpb.AddRestaurantData{
+		Data: &restaurantpb.AddRestaurantResponseData{
 			Restaurant: RestaurantResponse,
 		},
 		Message:    "Restaurant added successfully",

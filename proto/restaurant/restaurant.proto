@@ -32,10 +32,10 @@ message RestaurantItem {
     bool   restaurantItemVeg = 7;
     string restaurantItemImageUrl = 8;
 }
-message AddRestaurantData {
+message AddRestaurantResponseData {
     Restaurant restaurant = 1;
 }
-message GetAllRestaurantsData {
+message GetAllRestaurantsResponseData {
     int64 totalRestaurants = 1;
     repeated Restaurant restaurants = 2;
 }
@@ -45,7 +45,7 @@ message AddRestaurantRequest {
 }
 
 message AddRestaurantResponse {
-    AddRestaurantData data = 1;
+    AddRestaurantResponseData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
@@ -87,14 +87,15 @@ message UpdateRestaurantItemResponse {
     int64 statusCode = 3;
     string error = 4;
 }
-message GetAllRestaurantItemsData {
-    repeated RestaurantItem restaurantItems = 1;
+message GetAllRestaurantItemsResponseData {
+    int64 totalRestaurantItems = 1;
+    repeated RestaurantItem restaurantItems = 2;
 }
 message GetAllRestaurantItemsRequest {
     string restaurantId = 1;
 }
 message GetAllRestaurantItemsResponse {
-    GetAllRestaurantItemsData data = 1;
+    GetAllRestaurantItemsResponseData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;   
@@ -102,7 +103,7 @@ message GetAllRestaurantItemsResponse {
 message GetAllRestaurantsRequest {}
 
 message GetAllRestaurantsResponse {
-    GetAllRestaurantsData data = 1;
+    GetAllRestaurantsResponseData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
@@ -111,33 +112,37 @@ message DeleteRestaurantItemRequest {
     string restaurantName = 1;
     string restaurantItemName = 2;
 }
+message DeleteRestaurantItemResponseData {
+    string restaurantItemId = 1;
+}
 message DeleteRestaurantItemResponse {
-    string message = 1;
-    int64 statusCode = 2;
-    string error = 3;
-}
-message GetRestaurantsByCityRequest {
-    string city = 1;
-}
-message GetRestaurantsByCityData {
-    repeated Restaurant restaurants = 1;
-    int64 totalRestaurants = 2;
-}
-message GetRestaurantsByCityResponse {
-    GetRestaurantsByCityData data = 1;
+    DeleteRestaurantItemResponseData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
 }
-message GetRestaurantsByRestaurantItemResponseData {
+message GetRestaurantsByCityRequest {
+    string city = 1;
+}
+message GetRestaurantsByCityResponseData {
     repeated Restaurant restaurants = 1;
     int64 totalRestaurants = 2;
 }
-message GetRestaurantsByRestaurantItemRequest {
-    string restaurantItemName = 1;
+message GetRestaurantsByCityResponse {
+    GetRestaurantsByCityResponseData data = 1;
+    string message = 2;
+    int64 statusCode = 3;
+    string error = 4;
 }
-message GetRestaurantsByRestaurantItemResponse {
-    GetRestaurantsByRestaurantItemResponseData data = 1;
+message GetRestaurantsByItemCategoryResponseData {
+    repeated Restaurant restaurants = 1;
+    int64 totalRestaurants = 2;
+}
+message GetRestaurantsByItemCategoryRequest {
+    string category = 1;
+}
+message GetRestaurantsByItemCategoryResponse {
+    GetRestaurantsByItemCategoryResponseData data = 1;
     string message = 2;
     int64 statusCode = 3;
     string error = 4;
@@ -145,25 +150,25 @@ message GetRestaurantsByRestaurantItemResponse {
 service RestaurantService {
     rpc AddRestaurant(AddRestaurantRequest) returns (AddRestaurantResponse){
         option (google.api.http) = {
-            post: "/api/restaurant/add"
+            post: "/api/restaurants"
             body: "*"
         };
     }
     rpc UpdateRestaurant(UpdateRestaurantRequest) returns (UpdateRestaurantResponse){
         option (google.api.http) = {
-            put: "/restaurant/update"
+            put: "/api/restaurants/update"
             body: "*"
         };
     }
     rpc AddRestaurantItem(AddRestaurantItemRequest) returns (AddRestaurantItemResponse){
         option (google.api.http) = {
-            post: "/restaurant/item/add"
+            post: "/api/restaurant/items/add"
             body: "*"
         };
     }
     rpc UpdateRestaurantItem(UpdateRestaurantItemRequest) returns (UpdateRestaurantItemResponse){
         option (google.api.http) = {
-            put: "/restaurant/item/update"
+            put: "/api/restaurant/items/update"
             body: "*"
         };
     }
@@ -179,45 +184,17 @@ service RestaurantService {
     }
     rpc DeleteRestaurantItem(DeleteRestaurantItemRequest) returns (DeleteRestaurantItemResponse){
         option (google.api.http) = {
-            delete:"/{restaurantName}/delete/{restaurantItemName}"
+            delete:"/api/restaurants/{restaurantName}/items/{restaurantItemName}"
         };
     };
     rpc GetRestaurantsByCity(GetRestaurantsByCityRequest) returns (GetRestaurantsByCityResponse){
         option (google.api.http) = {
-            get: "/restaurants/city/{city}"
+            get: "/api/restaurants/city/{city}"
         };
     }
-    rpc GetRestaurantsByRestaurantsItem(GetRestaurantsByRestaurantItemRequest) returns (GetRestaurantsByRestaurantItemResponse){
+    rpc GetRestaurantsByItemCategory(GetRestaurantsByItemCategoryRequest) returns (GetRestaurantsByItemCategoryResponse){
         option (google.api.http) = {
-            get: "/restaurants/item/{restaurantItemName}"
+            get: "/api/restaurants/{category}"
         };
     }
 }
-
-// {
-//     "restaurantId": "1",
-//     "restaurantName": "The Pizza Kings",
-//     "restaurantAddress": {
-//         "streetNumber": "12/92",
-//         "streetName": "Babar Pur, Shahdara, Geeta Colony",
-//         "city": "Delhi",
-//         "country": "India"
-//     },
-//     "restaurantRating": 3.6,
-//     "restaurantDiscount": 12,
-//     "restaurantAvailability": true,
-//     "restaurantImage": "restaurant_1.png",
-//     "restaurantOperationDays": "Mon-Fri",
-//     "restaurantOperationHours": "10:00AM-11:00PM",
-//     "restaurantItems": [
-//         {
-//             "restaurantItemId": "1_1",
-//             "restaurantItemName": "Margherita Pizza",
-//             "restaurantItemPrice": 390,
-//             "restaurantItemCategory": "Pizza",
-//             "restaurantItemImageUrl": "restaurant_1_menu_1.png",
-//             "restaurantItemCuisineType": "North Indian",
-//             "restaurantItemVeg": true
-//         }
-//     ]
-// },

@@ -8,6 +8,19 @@ import (
 )
 
 func (*RestaurantService) GetAllRestaurantItems(ctx context.Context, request *restaurantpb.GetAllRestaurantItemsRequest) (*restaurantpb.GetAllRestaurantItemsResponse, error) {
+
+	// validate the restaurant id
+	if request.RestaurantId == "" {
+		return &restaurantpb.GetAllRestaurantItemsResponse{
+			Data: &restaurantpb.GetAllRestaurantItemsResponseData{
+				TotalRestaurantItems: 0,
+				RestaurantItems: nil,
+			},
+			Message:    "Invalid restaurant id provided",
+			StatusCode: int64(400),
+			Error:      "Bad Request",
+		}, nil
+	}	
 	// fetch restaurant from restaurantDB.
 	var restaurant model.Restaurant
 	primaryKeyRes := restaurantDBConnector.Where("id = ?", request.RestaurantId).First(&restaurant)
@@ -15,7 +28,8 @@ func (*RestaurantService) GetAllRestaurantItems(ctx context.Context, request *re
 	// check if the restaurant is exist or not.
 	if primaryKeyRes.Error != nil {
 		return &restaurantpb.GetAllRestaurantItemsResponse{
-			Data: &restaurantpb.GetAllRestaurantItemsData{
+			Data: &restaurantpb.GetAllRestaurantItemsResponseData{
+				TotalRestaurantItems: 0,
 				RestaurantItems: nil,
 			},
 			Message:    "Restaurant Does not exist",
@@ -27,7 +41,8 @@ func (*RestaurantService) GetAllRestaurantItems(ctx context.Context, request *re
 	err := restaurantItemDBConnector.Where("restaurant_id = ?", restaurant.ID).Find(&restaurantItems)
 	if err.Error != nil {
 		return &restaurantpb.GetAllRestaurantItemsResponse{
-			Data: &restaurantpb.GetAllRestaurantItemsData{
+			Data: &restaurantpb.GetAllRestaurantItemsResponseData{
+				TotalRestaurantItems: 0,
 				RestaurantItems: nil,
 			},
 			Message:    "Failed to get restaurant items",
@@ -49,7 +64,8 @@ func (*RestaurantService) GetAllRestaurantItems(ctx context.Context, request *re
 		})
 	}
 	return &restaurantpb.GetAllRestaurantItemsResponse{
-		Data: &restaurantpb.GetAllRestaurantItemsData{
+		Data: &restaurantpb.GetAllRestaurantItemsResponseData{
+			TotalRestaurantItems: int64(len(restaurantItems)),
 			RestaurantItems: restaurantItemsResponse,
 		},
 		Message:    "Restaurant items fetched successfully",

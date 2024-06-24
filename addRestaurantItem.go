@@ -10,14 +10,39 @@ import (
 )
 
 func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restaurantpb.AddRestaurantItemRequest) (*restaurantpb.AddRestaurantItemResponse, error) {
-	// Get the user email from the context
-	userEmail, ok := ctx.Value("userEmail").(string)
-	if !ok {
+	userEmail, emailCtxError := ctx.Value("userEmail").(string)
+	userRole, roleCtxError := ctx.Value("userRole").(string)
+	
+	if !emailCtxError || !roleCtxError {
 		fmt.Println("Failed to get user email from context")
+		return &restaurantpb.AddRestaurantItemResponse{ 
+			Data: nil,
+			Message: "Failed to get user mail from context",
+			Error: "Internal Server Error", 
+			StatusCode: int64(500),
+		}, nil
+	}
+	
+	if userRole != model.AdminRole {
 		return &restaurantpb.AddRestaurantItemResponse{
-			Message:    "",
-			StatusCode: 500,
-			Error:      "Internal Server Error",
+			Data:       nil,
+			Message:    "You do not have permission to perform this action. Only admin can add a restaurant item",
+			StatusCode: 403,
+			Error:      "Forbidden",
+		}, nil
+	}
+
+	if  request.RestaurantItem == nil || 
+		!config.ValidateRestaurantItemFields(request.RestaurantItem.RestaurantItemName,
+		request.RestaurantItem.RestaurantItemImageUrl, request.RestaurantItem.RestaurantItemPrice,
+		request.RestaurantItem.RestaurantItemCategory,
+		request.RestaurantItem.RestaurantItemCuisineType, 
+		request.RestaurantItem.RestaurantName) {
+		return &restaurantpb.AddRestaurantItemResponse{
+			Data: 	 nil,
+			Message:    "Invalid restaurant item data provided.",
+			StatusCode: 400,
+			Error:      "Bad Request",
 		}, nil
 	}
 	var restaurantItem model.RestaurantItem
@@ -28,22 +53,13 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 	restaurantItem.CuisineType = request.RestaurantItem.RestaurantItemCuisineType
 	restaurantItem.Veg = request.RestaurantItem.RestaurantItemVeg
 
-	if !config.ValidateRestaurantItemFields(restaurantItem.ItemName,
-		restaurantItem.ImageUrl, restaurantItem.ItemPrice, restaurantItem.Category,
-		restaurantItem.CuisineType, request.RestaurantItem.RestaurantName) {
-		return &restaurantpb.AddRestaurantItemResponse{
-			Message:    "Invalid restaurant item data provided.",
-			StatusCode: 400,
-			Error:      "Bad Request",
-		}, nil
-	}
-
 	// fetch restaurant from restaurantDB
 	var restaurant model.Restaurant
 	primaryKey := restaurantDBConnector.Where("name = ?", request.RestaurantItem.RestaurantName).First(&restaurant)
-	// check if the restaurant is exist or nor
+	// check if the restaurant is exist or not.
 	if primaryKey.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
 		return &restaurantpb.AddRestaurantItemResponse{
+			Data:       nil,
 			Message:    "You are not authorized to modify this restaurant's data Or Restaurant does not exist",
 			StatusCode: 403,
 			Error:      "Forbidden",

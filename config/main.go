@@ -50,9 +50,10 @@ func ConnectDB() (*gorm.DB, *gorm.DB, *gorm.DB,error) {
 
 func ValidateRestaurantFields(RestaurantName string, RestaurantAddress model.Address, 
 	RestaurantPhone string, RestaurantAvailability string,
-	RestaurantImageUrl string, RestaurantOperationHours string, RestaurantOperationDays string) bool {
+	RestaurantImageUrl string, RestaurantOperationHours string, RestaurantOperationDays string,
+	RestauarntRating float32) bool {
 
-	if RestaurantImageUrl == "" || RestaurantName == "" || RestaurantAddress.City == "" ||
+	if RestauarntRating <= 0 ||  RestaurantImageUrl == "" || RestaurantName == "" || RestaurantAddress.City == "" ||
 		RestaurantAddress.Country == "" || RestaurantAddress.Pincode == "" ||
 		RestaurantAddress.StreetName == "" || RestaurantPhone == "" ||
 		RestaurantAvailability == "" || RestaurantOperationHours == "" || RestaurantOperationDays == ""{

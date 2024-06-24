@@ -15,7 +15,10 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 	if !ok {
 		fmt.Println("Failed to get user email from context")
 		return &restaurantpb.GetAllRestaurantsResponse{
-			Data:       nil,
+			Data:       &restaurantpb.GetAllRestaurantsResponseData{
+				TotalRestaurants: 0,
+				Restaurants:      nil,
+			},
 			Message:    "Failed to get user email from context",
 			StatusCode: 500,
 			Error:      "Internal Server Error",
@@ -28,7 +31,7 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 	if err != nil {
 		fmt.Println("[ GetAllRestaurants ] Failed to get restaurants from the database", err)
 		return &restaurantpb.GetAllRestaurantsResponse{
-			Data: &restaurantpb.GetAllRestaurantsData{
+			Data:       &restaurantpb.GetAllRestaurantsResponseData{
 				TotalRestaurants: 0,
 				Restaurants:      nil,
 			},
@@ -47,11 +50,11 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 		if restaurantAddressErr != nil {
 			fmt.Println("[ GetAllRestaurants ] Failed to get restaurant address from the database", restaurantAddressErr)
 			return &restaurantpb.GetAllRestaurantsResponse{
-				Data: &restaurantpb.GetAllRestaurantsData{
+				Data:       &restaurantpb.GetAllRestaurantsResponseData{
 					TotalRestaurants: 0,
 					Restaurants:      nil,
 				},
-				Message:    "",
+				Message:    "Failed to get the restaurant addresses to the database. Please try again later.",
 				StatusCode: 500,
 				Error:      "Internal Server Error",
 			}, nil
@@ -75,7 +78,7 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 		})
 	}
 	return &restaurantpb.GetAllRestaurantsResponse{
-		Data: &restaurantpb.GetAllRestaurantsData{
+		Data: &restaurantpb.GetAllRestaurantsResponseData{
 			TotalRestaurants: int64(totalRestaurants),
 			Restaurants:      restaurantsResponse,
 		},
