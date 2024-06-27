@@ -13,6 +13,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"gorm.io/gorm"
@@ -25,12 +26,22 @@ type RestaurantService struct {
 var restaurantDBConnector *gorm.DB
 var restaurantItemDBConnector *gorm.DB
 var restaurantAddressDBConnector *gorm.DB
+var logger *zap.Logger
+
+func init() {
+	var err error
+	logger, err = zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
+}
 
 func startServer() {
 	godotenv.Load(".env")
 	fmt.Println("Starting restaurant-microservice server...")
 	// Connect to the database
-	restaurantDB, restaurantItemDB, restaurantAddress ,err := config.ConnectDB()
+	restaurantDB, restaurantItemDB, restaurantAddress, err := config.ConnectDB()
 	restaurantDBConnector = restaurantDB
 	restaurantItemDBConnector = restaurantItemDB
 	restaurantAddressDBConnector = restaurantAddress

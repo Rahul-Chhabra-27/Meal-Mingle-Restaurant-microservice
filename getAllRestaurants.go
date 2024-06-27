@@ -2,20 +2,22 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"restaurant-micro/model"
 	restaurantpb "restaurant-micro/proto/restaurant"
 	"strconv"
+
+	"go.uber.org/zap"
 )
 
 func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restaurantpb.GetAllRestaurantsRequest) (*restaurantpb.GetAllRestaurantsResponse, error) {
+	logger.Info("Received GetAllRestaurants request")
 
 	// get the user mail from the context
 	userEmail, ok := ctx.Value("userEmail").(string)
 	if !ok {
-		fmt.Println("Failed to get user email from context")
+		logger.Error("Failed to get user email from context")
 		return &restaurantpb.GetAllRestaurantsResponse{
-			Data:       &restaurantpb.GetAllRestaurantsResponseData{
+			Data: &restaurantpb.GetAllRestaurantsResponseData{
 				TotalRestaurants: 0,
 				Restaurants:      nil,
 			},
@@ -27,11 +29,11 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 
 	var restaurants []model.Restaurant
 	err := restaurantDBConnector.Where("restaurant_owner_mail = ?", userEmail).Find(&restaurants).Error
-	
+
 	if err != nil {
-		fmt.Println("[ GetAllRestaurants ] Failed to get restaurants from the database", err)
+		logger.Error("Failed to get restaurants from the database", zap.Error(err))
 		return &restaurantpb.GetAllRestaurantsResponse{
-			Data:       &restaurantpb.GetAllRestaurantsResponseData{
+			Data: &restaurantpb.GetAllRestaurantsResponseData{
 				TotalRestaurants: 0,
 				Restaurants:      nil,
 			},
@@ -48,9 +50,11 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 		var restaurantAddress model.Address
 		restaurantAddressErr := restaurantAddressDBConnector.Where("restaurant_id = ?", restaurant.ID).First(&restaurantAddress).Error
 		if restaurantAddressErr != nil {
-			fmt.Println("[ GetAllRestaurants ] Failed to get restaurant address from the database", restaurantAddressErr)
+			logger.Error("Failed to get restaurant address from the database",
+				zap.Error(restaurantAddressErr))
+
 			return &restaurantpb.GetAllRestaurantsResponse{
-				Data:       &restaurantpb.GetAllRestaurantsResponseData{
+				Data: &restaurantpb.GetAllRestaurantsResponseData{
 					TotalRestaurants: 0,
 					Restaurants:      nil,
 				},
@@ -77,6 +81,8 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 			},
 		})
 	}
+	logger.Info("Restaurants fetched successfully", zap.Int("totalRestaurants", totalRestaurants))
+
 	return &restaurantpb.GetAllRestaurantsResponse{
 		Data: &restaurantpb.GetAllRestaurantsResponseData{
 			TotalRestaurants: int64(totalRestaurants),
