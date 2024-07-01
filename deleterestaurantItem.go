@@ -5,15 +5,14 @@ import (
 	"restaurant-micro/model"
 	restaurantpb "restaurant-micro/proto/restaurant"
 	"strconv"
-	"strings"
 
 	"go.uber.org/zap"
 )
 
 func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *restaurantpb.DeleteRestaurantItemRequest) (*restaurantpb.DeleteRestaurantItemResponse, error) {
 	logger.Info("Received DeleteRestaurantItem request",
-		zap.String("restaurantName", request.RestaurantName),
-		zap.String("restaurantItemName", request.RestaurantItemName))
+		zap.String("restaurantId", request.RestaurantId),
+		zap.String("restaurantItemId", request.RestaurantItemId))
 
 	// Get the user email from the context
 	userEmail, emailCtxError := ctx.Value("userEmail").(string)
@@ -38,9 +37,11 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 			Error:      "Forbidden",
 		}, nil
 	}
-
+	//convert string to int64
+	restaurantId, _ := strconv.ParseUint(request.RestaurantId, 10, 64)
+	restaurantItemId, _ := strconv.ParseUint(request.RestaurantItemId, 10, 64)
 	// validate the restaurant item fields
-	if request.RestaurantName == "" || request.RestaurantItemName == "" {
+	if restaurantId <= 0 || restaurantItemId <= 0 {
 		logger.Warn("Invalid restaurant item data provided")
 		return &restaurantpb.DeleteRestaurantItemResponse{
 			Data:       nil,
@@ -49,16 +50,14 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 			Error:      "Bad Request",
 		}, nil
 	}
-	restaurantName := strings.ReplaceAll(request.RestaurantName, "-", " ")
-	restaurantItemName := strings.ReplaceAll(request.RestaurantItemName, "-", " ")
 
 	// check if user own's this restaurant
 	var restaurant model.Restaurant
-	primaryKeyRes := restaurantDBConnector.Where("name = ?", restaurantName).First(&restaurant)
+	primaryKeyRes := restaurantDBConnector.Where("id = ?", restaurantId).First(&restaurant)
 	if primaryKeyRes.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
 		logger.Warn("Restaurant does not exist or user is not the owner",
 			zap.String("userEmail", userEmail),
-			zap.String("restaurantName", restaurantName))
+			zap.String("restaurantId", request.RestaurantId))
 		return &restaurantpb.DeleteRestaurantItemResponse{
 			Data:       nil,
 			Message:    "Restaurant does not exist OR you are not the owner of this restaurant",
@@ -69,10 +68,11 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 
 	// delete the restaurant item
 	var restaurantItem model.RestaurantItem
-	primaryKey := restaurantItemDBConnector.Where("item_name = ? AND restaurant_id = ?", restaurantItemName, restaurant.ID).First(&restaurantItem)
+	primaryKey := restaurantItemDBConnector.Where("id = ? AND restaurant_id = ?",
+		restaurantItemId, restaurant.ID).First(&restaurantItem)
 
 	if primaryKey.Error != nil {
-		logger.Warn("Restaurant item does not exist", zap.String("restaurantItemName", restaurantItemName))
+		logger.Warn("Restaurant item does not exist", zap.String("restaurantItemId", request.RestaurantItemId))
 		return &restaurantpb.DeleteRestaurantItemResponse{
 			Data:       nil,
 			Message:    "Restaurant item does not exist",
@@ -82,7 +82,7 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 	}
 	err := restaurantItemDBConnector.Delete(&restaurantItem)
 	if err.Error != nil {
-		logger.Error("Failed to delete restaurant item", zap.String("restaurantItemName", restaurantItemName), zap.Error(err.Error))
+		logger.Error("Failed to delete restaurant item", zap.String("restaurantItemId", request.RestaurantItemId), zap.Error(err.Error))
 		return &restaurantpb.DeleteRestaurantItemResponse{
 			Data:       nil,
 			Message:    "Failed to delete restaurant item",

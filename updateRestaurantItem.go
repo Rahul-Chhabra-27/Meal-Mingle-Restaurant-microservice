@@ -40,7 +40,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 	}
 	// fetch restaurant from restaurantDB
 	var restaurant model.Restaurant
-	primaryKeyRes := restaurantDBConnector.Where("name = ?", request.RestaurantItem.RestaurantName).First(&restaurant)
+	primaryKeyRes := restaurantDBConnector.Where("id = ?", request.RestaurantItem.RestaurantId).First(&restaurant)
 	// check if the restaurant is exist or nor
 	if primaryKeyRes.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
 		logger.Warn("Unauthorized update attempt", 

@@ -10,7 +10,7 @@ import (
 	"go.uber.org/zap"
 )
 
-func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restaurantpb.AddRestaurantItemRequest) (*restaurantpb.AddRestaurantItemResponse, error) {
+func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restaurantpb.AddRestaurantItemRequest) (*restaurantpb.AddRestaurantItemResponse, error){
 	logger.Info("Received AddRestaurantItem request",
 		zap.String("restaurantItemName", request.RestaurantItem.RestaurantItemName))
 
@@ -90,8 +90,7 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 	}
 	logger.Info("Restaurant item added successfully", zap.String("restaurantItemName", request.RestaurantItem.RestaurantItemName))
 	// Return a success message if the restaurant item is created successfully
-	restaurantItemResponse := request.RestaurantItem
-	restaurantItemResponse.RestaurantItemId = strconv.FormatUint(uint64(restaurantItem.ID), 10)
+	restaurantItemResponse := addRestaurantItemResponseData(restaurant.ID,restaurantItem.ID, request.RestaurantItem)
 	return &restaurantpb.AddRestaurantItemResponse{
 		Data: &restaurantpb.AddRestaurantItemResponseData{
 			RestaurantItem: restaurantItemResponse,
@@ -100,4 +99,18 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 		StatusCode: 200,
 		Error:      "",
 	}, nil
+}
+
+func addRestaurantItemResponseData(restaurantId uint,restaurantItemId uint ,restaurantItemData *restaurantpb.AddRestaurantItemData) *restaurantpb.RestaurantItem {
+	var restaurantItemResponse = &restaurantpb.RestaurantItem{
+		RestaurantItemId:          strconv.FormatUint(uint64(restaurantItemId), 10),
+		RestaurantItemName:        restaurantItemData.RestaurantItemName,
+		RestaurantItemPrice:       restaurantItemData.RestaurantItemPrice,
+		RestaurantItemImageUrl:    restaurantItemData.RestaurantItemImageUrl,
+		RestaurantItemCategory:    restaurantItemData.RestaurantItemCategory,
+		RestaurantItemCuisineType: restaurantItemData.RestaurantItemCuisineType,
+		RestaurantItemVeg:         restaurantItemData.RestaurantItemVeg,
+		RestaurantId:              strconv.FormatUint(uint64(restaurantId), 10),
+	}
+	return restaurantItemResponse
 }

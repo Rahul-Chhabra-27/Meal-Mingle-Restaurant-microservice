@@ -67,7 +67,7 @@ func (*RestaurantService) GetAllRestaurantItems(ctx context.Context, request *re
 			RestaurantItemCategory:    restaurantItem.Category,
 			RestaurantItemCuisineType: restaurantItem.CuisineType,
 			RestaurantItemVeg:         restaurantItem.Veg,
-			RestaurantName:            restaurant.Name,
+			RestaurantId:              request.RestaurantId,
 		})
 	}
 	logger.Info("Restaurant items fetched successfully", zap.Int("totalItems", len(restaurantItems)))

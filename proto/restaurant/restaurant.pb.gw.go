@@ -216,24 +216,24 @@ func request_RestaurantService_DeleteRestaurantItem_0(ctx context.Context, marsh
 		_   = err
 	)
 
-	val, ok = pathParams["restaurantName"]
+	val, ok = pathParams["restaurantId"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "restaurantName")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "restaurantId")
 	}
 
-	protoReq.RestaurantName, err = runtime.String(val)
+	protoReq.RestaurantId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "restaurantName", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "restaurantId", err)
 	}
 
-	val, ok = pathParams["restaurantItemName"]
+	val, ok = pathParams["restaurantItemId"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "restaurantItemName")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "restaurantItemId")
 	}
 
-	protoReq.RestaurantItemName, err = runtime.String(val)
+	protoReq.RestaurantItemId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "restaurantItemName", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "restaurantItemId", err)
 	}
 
 	msg, err := client.DeleteRestaurantItem(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -252,24 +252,24 @@ func local_request_RestaurantService_DeleteRestaurantItem_0(ctx context.Context,
 		_   = err
 	)
 
-	val, ok = pathParams["restaurantName"]
+	val, ok = pathParams["restaurantId"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "restaurantName")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "restaurantId")
 	}
 
-	protoReq.RestaurantName, err = runtime.String(val)
+	protoReq.RestaurantId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "restaurantName", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "restaurantId", err)
 	}
 
-	val, ok = pathParams["restaurantItemName"]
+	val, ok = pathParams["restaurantItemId"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "restaurantItemName")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "restaurantItemId")
 	}
 
-	protoReq.RestaurantItemName, err = runtime.String(val)
+	protoReq.RestaurantItemId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "restaurantItemName", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "restaurantItemId", err)
 	}
 
 	msg, err := server.DeleteRestaurantItem(ctx, &protoReq)
@@ -545,7 +545,7 @@ func RegisterRestaurantServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.RestaurantService/DeleteRestaurantItem", runtime.WithHTTPPathPattern("/api/restaurants/{restaurantName}/items/{restaurantItemName}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/proto.RestaurantService/DeleteRestaurantItem", runtime.WithHTTPPathPattern("/api/restaurants/{restaurantId}/items/{restaurantItemId}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -791,7 +791,7 @@ func RegisterRestaurantServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/proto.RestaurantService/DeleteRestaurantItem", runtime.WithHTTPPathPattern("/api/restaurants/{restaurantName}/items/{restaurantItemName}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/proto.RestaurantService/DeleteRestaurantItem", runtime.WithHTTPPathPattern("/api/restaurants/{restaurantId}/items/{restaurantItemId}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -867,7 +867,7 @@ var (
 
 	pattern_RestaurantService_GetAllRestaurants_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"api", "restaurants"}, ""))
 
-	pattern_RestaurantService_DeleteRestaurantItem_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "restaurants", "restaurantName", "items", "restaurantItemName"}, ""))
+	pattern_RestaurantService_DeleteRestaurantItem_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"api", "restaurants", "restaurantId", "items", "restaurantItemId"}, ""))
 
 	pattern_RestaurantService_GetRestaurantsByCity_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2}, []string{"api", "restaurants", "city"}, ""))
 
