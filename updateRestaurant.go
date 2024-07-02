@@ -20,7 +20,7 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 		return &restaurantpb.UpdateRestaurantResponse{
 			Data:       nil,
 			Message:    "",
-			StatusCode: 500,
+			StatusCode: StatusInternalServerError,
 			Error:      "Internal Server Error",
 		}, nil
 	}
@@ -32,7 +32,7 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 		logger.Warn("Invalid restaurant data provided")
 		return &restaurantpb.UpdateRestaurantResponse{
 			Message:    "Invalid restaurant data provided",
-			StatusCode: 400,
+			StatusCode: StatusBadRequest,
 			Error:      "Bad Request",
 		}, nil
 	} else {
@@ -47,13 +47,15 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 		request.Restaurant.RestaurantAvailability, request.Restaurant.RestaurantImageUrl,
 		request.Restaurant.RestaurantOperationHours,
 		request.Restaurant.RestaurantOperationDays,
-		request.Restaurant.RestaurantRating) ||
+		request.Restaurant.RestaurantRating, 
+		request.Restaurant.RestaurantMinimumOrderAmount, 
+		request.Restaurant.RestaurantDiscountPercentage) ||
 		!config.ValidateRestaurantPhone(request.Restaurant.RestaurantPhoneNumber) {
 
 		logger.Warn("Invalid restaurant fields", zap.Any("Restaurant", request.Restaurant))
 		return &restaurantpb.UpdateRestaurantResponse{
 			Message:    "Invalid restaurant data provided.Some fields might be missing, empty or invalid, and make sure phone number contains only numbers and is 10 digits long",
-			StatusCode: 400,
+			StatusCode: StatusBadRequest,
 			Error:      "Invalid restaurant fields",
 		}, nil
 	}
@@ -67,7 +69,7 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 		return &restaurantpb.UpdateRestaurantResponse{
 			Data:       nil,
 			Message:    "You do not have permission to perform this action. Only restaurant owner can update the restaurant",
-			StatusCode: 401,
+			StatusCode: StatusUnauthorized,
 			Error:      "Unauthorized",
 		}, nil
 	}
@@ -77,7 +79,7 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 		return &restaurantpb.UpdateRestaurantResponse{
 			Data:       nil,
 			Message:    "Failed to get restaurant address from the database",
-			StatusCode: 500,
+			StatusCode: StatusInternalServerError,
 			Error:      "Internal Server Error",
 		}, nil
 	}
@@ -90,7 +92,8 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 	restaurant.OperationDays = request.Restaurant.RestaurantOperationDays
 	restaurant.OperationHours = request.Restaurant.RestaurantOperationHours
 	restaurant.RestaurantOwnerMail = userEmail
-
+	restaurant.RestaurantMinimumOrderAmount = request.Restaurant.RestaurantMinimumOrderAmount
+	restaurant.RestaurantDiscountPercentage = request.Restaurant.RestaurantDiscountPercentage
 	restaurantAddress.City = request.Restaurant.RestaurantAddress.City
 	restaurantAddress.Country = request.Restaurant.RestaurantAddress.Country
 	restaurantAddress.Pincode = request.Restaurant.RestaurantAddress.Pincode
@@ -104,7 +107,7 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 		logger.Error("Failed to update restaurant address", zap.Error(updateAddressError.Error))
 		return &restaurantpb.UpdateRestaurantResponse{
 			Message:    "A restaurant with the same name or phone number already exists.",
-			StatusCode: 409,
+			StatusCode: StatusConflict,
 			Error:      "Conflict",
 		}, nil
 	}
@@ -114,7 +117,7 @@ func (*RestaurantService) UpdateRestaurant(ctx context.Context, request *restaur
 			Restaurant: request.Restaurant,
 		},
 		Message:    "Restaurant updated successfully",
-		StatusCode: 200,
+		StatusCode: StatusOK,
 		Error:      "",
 	}, nil
 

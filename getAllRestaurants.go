@@ -22,7 +22,7 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 				Restaurants:      nil,
 			},
 			Message:    "Failed to get user email from context",
-			StatusCode: 500,
+			StatusCode: StatusInternalServerError,
 			Error:      "Internal Server Error",
 		}, nil
 	}
@@ -38,7 +38,7 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 				Restaurants:      nil,
 			},
 			Message:    "Failed to get the restaurants to the database. Please try again later.",
-			StatusCode: 500,
+			StatusCode: StatusInternalServerError,
 			Error:      "Internal Server Error",
 		}, nil
 	}
@@ -59,7 +59,7 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 					Restaurants:      nil,
 				},
 				Message:    "Failed to get the restaurant addresses to the database. Please try again later.",
-				StatusCode: 500,
+				StatusCode: StatusInternalServerError,
 				Error:      "Internal Server Error",
 			}, nil
 		}
@@ -73,6 +73,9 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 			RestaurantOperationDays:  restaurant.OperationDays,
 			RestaurantOperationHours: restaurant.OperationHours,
 			RestaurantOwnerMail:      restaurant.RestaurantOwnerMail,
+			RestaurantMinimumOrderAmount: restaurant.RestaurantMinimumOrderAmount,
+			RestaurantDiscountPercentage:  restaurant.RestaurantDiscountPercentage,
+			
 			RestaurantAddress: &restaurantpb.Address{
 				City:       restaurantAddress.City,
 				Country:    restaurantAddress.Country,
@@ -89,7 +92,7 @@ func (*RestaurantService) GetAllRestaurants(ctx context.Context, request *restau
 			Restaurants:      restaurantsResponse,
 		},
 		Message:    "Restaurants fetched successfully",
-		StatusCode: 200,
+		StatusCode: StatusOK,
 		Error:      "",
 	}, nil
 }

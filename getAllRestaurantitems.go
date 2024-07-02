@@ -22,7 +22,7 @@ func (*RestaurantService) GetAllRestaurantItems(ctx context.Context, request *re
 				RestaurantItems:      nil,
 			},
 			Message:    "Invalid restaurant id provided",
-			StatusCode: int64(400),
+			StatusCode: StatusBadRequest,
 			Error:      "Bad Request",
 		}, nil
 	}
@@ -39,7 +39,7 @@ func (*RestaurantService) GetAllRestaurantItems(ctx context.Context, request *re
 				RestaurantItems:      nil,
 			},
 			Message:    "Restaurant Does not exist",
-			StatusCode: int64(404),
+			StatusCode: StatusBadRequest,
 			Error:      "Bad Request",
 		}, nil
 	}
@@ -53,7 +53,7 @@ func (*RestaurantService) GetAllRestaurantItems(ctx context.Context, request *re
 				RestaurantItems:      nil,
 			},
 			Message:    "Failed to get restaurant items",
-			StatusCode: int64(500),
+			StatusCode: StatusInternalServerError,
 			Error:      "Internal Server Error",
 		}, nil
 	}
@@ -77,7 +77,7 @@ func (*RestaurantService) GetAllRestaurantItems(ctx context.Context, request *re
 			RestaurantItems:      restaurantItemsResponse,
 		},
 		Message:    "Restaurant items fetched successfully",
-		StatusCode: int64(200),
+		StatusCode: StatusOK,
 		Error:      "",
 	}, nil
 }

@@ -20,7 +20,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 		logger.Error("Failed to get user email from context")
 		return &restaurantpb.UpdateRestaurantItemResponse{
 			Message:    "Failed to get user email from context",
-			StatusCode: 500,
+			StatusCode: StatusInternalServerError,
 			Error:      "Internal Server Error",
 		}, nil
 	}
@@ -34,7 +34,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 
 		return &restaurantpb.UpdateRestaurantItemResponse{
 			Message:    "Invalid restaurant item data provided.Some fields might be missing or invalid",
-			StatusCode: 400,
+			StatusCode: StatusBadRequest,
 			Error:      "Invalid restaurant item fields",
 		}, nil
 	}
@@ -49,7 +49,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 
 		return &restaurantpb.UpdateRestaurantItemResponse{
 			Message:    "You do not have permission to perform this action. Only restaurant owner can update the restaurant item",
-			StatusCode: 404,
+			StatusCode: StatusForbidden,
 			Error:      "Resource not found or forbidden",
 		}, nil
 	}
@@ -62,8 +62,8 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 		zap.Error(primaryKey.Error))
 		return &restaurantpb.UpdateRestaurantItemResponse{
 			Message:    "Restaurant Item does not exist",
-			StatusCode: 404,
-			Error:      "Bad Request",
+			StatusCode: StatusNotFound,
+			Error:      "Not Found",
 		}, nil
 	}
 	restaurantItem.ItemName = request.RestaurantItem.RestaurantItemName
@@ -78,7 +78,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 		logger.Error("Failed to update restaurant item", zap.Error(err.Error))
 		return &restaurantpb.UpdateRestaurantItemResponse{
 			Message:    "Failed to update restaurant item, this can be due to same item name already exist in the restaurant or some other issue.",
-			StatusCode: 500,
+			StatusCode: StatusInternalServerError,
 			Error:      "Internal Server Error",
 		}, nil
 	}
@@ -88,7 +88,7 @@ func (*RestaurantService) UpdateRestaurantItem(ctx context.Context, request *res
 			RestaurantItem: request.RestaurantItem,
 		},
 		Message:    "Restaurant item updated successfully",
-		StatusCode: 200,
+		StatusCode: StatusOK,
 		Error:      "",
 	}, nil
 }

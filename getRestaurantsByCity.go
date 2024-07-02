@@ -19,7 +19,7 @@ func (*RestaurantService) GetRestaurantsByCity(ctx context.Context, request *res
 		return &restaurantpb.GetRestaurantsByCityResponse{
 			Data:       nil,
 			Message:    "Invalid Field, city field is required",
-			StatusCode: 400,
+			StatusCode: StatusBadRequest,
 			Error:      "Bad Request",
 		}, nil
 	}
@@ -31,7 +31,7 @@ func (*RestaurantService) GetRestaurantsByCity(ctx context.Context, request *res
 		return &restaurantpb.GetRestaurantsByCityResponse{
 			Data:       nil,
 			Message:    "Failed to get restaurants from the database",
-			StatusCode: 500,
+			StatusCode: StatusInternalServerError,
 			Error:      "Internal Server Error",
 		}, nil
 	}
@@ -47,7 +47,7 @@ func (*RestaurantService) GetRestaurantsByCity(ctx context.Context, request *res
 			return &restaurantpb.GetRestaurantsByCityResponse{
 				Data:       nil,
 				Message:    "Failed to get restaurant from the database",
-				StatusCode: 500,
+				StatusCode: StatusInternalServerError,
 				Error:      "Internal Server Error",
 			}, nil
 		}
@@ -61,6 +61,9 @@ func (*RestaurantService) GetRestaurantsByCity(ctx context.Context, request *res
 			RestaurantOperationDays:  restaurant.OperationDays,
 			RestaurantOperationHours: restaurant.OperationHours,
 			RestaurantOwnerMail:      restaurant.RestaurantOwnerMail,
+			RestaurantMinimumOrderAmount: restaurant.RestaurantMinimumOrderAmount,
+			RestaurantDiscountPercentage: restaurant.RestaurantDiscountPercentage,
+	
 			RestaurantAddress: &restaurantpb.Address{
 				City:       address.City,
 				Country:    address.Country,
@@ -76,7 +79,7 @@ func (*RestaurantService) GetRestaurantsByCity(ctx context.Context, request *res
 			Restaurants:      restaurantsResponse,
 		},
 		Message:    "Restaurants fetched successfully",
-		StatusCode: 200,
+		StatusCode: StatusOK,
 		Error:      "",
 	}, nil
 }

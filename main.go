@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -17,6 +16,17 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"gorm.io/gorm"
+)
+
+const (
+	StatusBadRequest          = 400
+	StatusConflict            = 409
+	StatusInternalServerError = 500
+	StatusOK                  = 200
+	StatusCreated             = 201
+	StatusNotFound            = 404
+	StatusUnauthorized        = 401
+	StatusForbidden           = 403
 )
 
 type RestaurantService struct {
@@ -38,8 +48,10 @@ func init() {
 }
 
 func startServer() {
-	godotenv.Load(".env")
-	fmt.Println("Starting restaurant-microservice server...")
+	if err := godotenv.Load(".env"); err != nil {
+		logger.Warn("No .env file found")
+	}
+	logger.Info("Starting restaurant-microservice server...")
 	// Connect to the database
 	restaurantDB, restaurantItemDB, restaurantAddress, err := config.ConnectDB()
 	restaurantDBConnector = restaurantDB
@@ -47,13 +59,13 @@ func startServer() {
 	restaurantAddressDBConnector = restaurantAddress
 
 	if err != nil {
-		log.Fatalf("Could not connect to the database: %s", err)
+		logger.Fatal("Could not connect to the database", zap.Error(err))
 	}
 	// Start the gRPC server
 	listner, err := net.Listen("tcp", "localhost:50052")
 	// Check if there is an error while starting the server
 	if err != nil {
-		log.Fatalf("Failed to start server: %s", err)
+		logger.Fatal("Failed to start server", zap.Error(err))
 	}
 	// Create a new gRPC server
 	grpcServer := grpc.NewServer(
@@ -66,7 +78,7 @@ func startServer() {
 	// Start the server in a new goroutine (concurrency) (Serve).
 	go func() {
 		if err := grpcServer.Serve(listner); err != nil {
-			log.Fatalf("Failed to serve: %s", err)
+			logger.Fatal("Failed to serve", zap.Error(err))
 		}
 	}()
 	// Create a new gRPC-Gateway server (gateway).
@@ -77,7 +89,7 @@ func startServer() {
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {
-		log.Fatalln("Failed to dial server:", err)
+		logger.Fatal("Failed to dial server", zap.Error(err))
 	}
 	// Create a new gRPC-Gateway mux (gateway).
 	gwmux := runtime.NewServeMux()
@@ -85,7 +97,7 @@ func startServer() {
 	// Register the service with the server (gateway).
 	err = restaurantpb.RegisterRestaurantServiceHandler(context.Background(), gwmux, connection)
 	if err != nil {
-		log.Fatalln("Failed to register gateway:", err)
+		logger.Fatal("Failed to register gateway", zap.Error(err))
 	}
 	// Enable CORS
 	corsOrigins := handlers.AllowedOrigins([]string{"http://localhost:3000"})
@@ -98,8 +110,7 @@ func startServer() {
 		Addr:    ":8091",
 		Handler: wrappedGwmux,
 	}
-
-	log.Println("Serving gRPC-Gateway on http://0.0.0.0:8091")
+	logger.Info("Serving gRPC-Gateway on http://0.0.0.0:8091")
 	log.Fatalln(gwServer.ListenAndServe())
 }
 

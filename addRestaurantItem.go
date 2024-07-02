@@ -23,7 +23,7 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 			Data:       nil,
 			Message:    "Failed to get user mail from context",
 			Error:      "Internal Server Error",
-			StatusCode: int64(500),
+			StatusCode: StatusInternalServerError,
 		}, nil
 	}
 
@@ -35,7 +35,7 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 		return &restaurantpb.AddRestaurantItemResponse{
 			Data:       nil,
 			Message:    "You do not have permission to perform this action. Only admin can add a restaurant item",
-			StatusCode: 403,
+			StatusCode: StatusForbidden,
 			Error:      "Forbidden",
 		}, nil
 	}
@@ -50,7 +50,7 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 		return &restaurantpb.AddRestaurantItemResponse{
 			Data:       nil,
 			Message:    "Invalid restaurant item data provided.",
-			StatusCode: 400,
+			StatusCode: StatusBadRequest,
 			Error:      "Bad Request",
 		}, nil
 	}
@@ -72,7 +72,7 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 		return &restaurantpb.AddRestaurantItemResponse{
 			Data:       nil,
 			Message:    "You are not authorized to modify this restaurant's data Or Restaurant does not exist",
-			StatusCode: 403,
+			StatusCode: StatusForbidden,
 			Error:      "Forbidden",
 		}, nil
 	}
@@ -84,7 +84,7 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 		logger.Error("Failed to create restaurant item", zap.String("restaurantItemName", request.RestaurantItem.RestaurantItemName), zap.Error(result.Error))
 		return &restaurantpb.AddRestaurantItemResponse{
 			Message:    "A food item with similar details might already exist on this restaurant's menu.",
-			StatusCode: 409,
+			StatusCode: StatusConflict,
 			Error:      "Food item creation failed",
 		}, nil
 	}
@@ -96,7 +96,7 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 			RestaurantItem: restaurantItemResponse,
 		},
 		Message:    "Restaurant item added successfully",
-		StatusCode: 200,
+		StatusCode: StatusCreated,
 		Error:      "",
 	}, nil
 }

@@ -23,7 +23,7 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 		return &restaurantpb.DeleteRestaurantItemResponse{
 			Message:    "Failed to get user email and role from context",
 			Error:      "Internal Server Error",
-			StatusCode: int64(500),
+			StatusCode: StatusInternalServerError,
 		}, nil
 	}
 
@@ -33,7 +33,7 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 		return &restaurantpb.DeleteRestaurantItemResponse{
 			Data:       nil,
 			Message:    "You do not have permission to perform this action. Only admin can add a delete restaurant item",
-			StatusCode: 403,
+			StatusCode: StatusForbidden,
 			Error:      "Forbidden",
 		}, nil
 	}
@@ -46,7 +46,7 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 		return &restaurantpb.DeleteRestaurantItemResponse{
 			Data:       nil,
 			Message:    "Invalid restaurant item data provided",
-			StatusCode: 400,
+			StatusCode: StatusBadRequest,
 			Error:      "Bad Request",
 		}, nil
 	}
@@ -61,7 +61,7 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 		return &restaurantpb.DeleteRestaurantItemResponse{
 			Data:       nil,
 			Message:    "Restaurant does not exist OR you are not the owner of this restaurant",
-			StatusCode: 404,
+			StatusCode: StatusForbidden,
 			Error:      "Resource not found or forbidden",
 		}, nil
 	}
@@ -76,7 +76,7 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 		return &restaurantpb.DeleteRestaurantItemResponse{
 			Data:       nil,
 			Message:    "Restaurant item does not exist",
-			StatusCode: 404,
+			StatusCode: StatusForbidden,
 			Error:      "Resource not found or forbidden",
 		}, nil
 	}
@@ -86,7 +86,7 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 		return &restaurantpb.DeleteRestaurantItemResponse{
 			Data:       nil,
 			Message:    "Failed to delete restaurant item",
-			StatusCode: 500,
+			StatusCode: StatusInternalServerError,
 			Error:      "Internal Server Error",
 		}, nil
 	}
@@ -96,7 +96,7 @@ func (*RestaurantService) DeleteRestaurantItem(ctx context.Context, request *res
 			RestaurantItemId: strconv.FormatUint(uint64(restaurantItem.ID), 10),
 		},
 		Message:    "Restaurant item deleted successfully",
-		StatusCode: 200,
+		StatusCode: StatusOK,
 		Error:      "",
 	}, nil
 }

@@ -27,7 +27,7 @@ func GoDotEnvVariable(key string) string {
 	}
 	return os.Getenv(key)
 }
-func ConnectDB() (*gorm.DB, *gorm.DB, *gorm.DB,error) {
+func ConnectDB() (*gorm.DB, *gorm.DB, *gorm.DB, error) {
 	restaurantDB, err := gorm.Open(mysql.Open(DatabaseDsn()), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
@@ -45,29 +45,34 @@ func ConnectDB() (*gorm.DB, *gorm.DB, *gorm.DB,error) {
 	}
 	restaurantAddress.AutoMigrate(&model.Address{})
 
-	return restaurantDB, restaurantitemDB, restaurantAddress, nil;
+	return restaurantDB, restaurantitemDB, restaurantAddress, nil
 }
 
-func ValidateRestaurantFields(RestaurantName string, RestaurantAddress model.Address, 
+func ValidateRestaurantFields(RestaurantName string, RestaurantAddress model.Address,
 	RestaurantPhone string, RestaurantAvailability string,
-	RestaurantImageUrl string, RestaurantOperationHours string, RestaurantOperationDays string,
-	RestauarntRating float32) bool {
+	RestaurantImageUrl string, RestaurantOperationHours string,
+	RestaurantOperationDays string,
+	RestauarntRating float32, restaurantMinimumOrderAmount int64,
+	restaurantDiscountPercentage float32,
 
-	if RestauarntRating <= 0 ||  RestaurantImageUrl == "" || RestaurantName == "" || RestaurantAddress.City == "" ||
+) bool {
+	if RestauarntRating <= 0 || RestaurantImageUrl == "" || RestaurantName == "" || RestaurantAddress.City == "" ||
 		RestaurantAddress.Country == "" || RestaurantAddress.Pincode == "" ||
 		RestaurantAddress.StreetName == "" || RestaurantPhone == "" ||
-		RestaurantAvailability == "" || RestaurantOperationHours == "" || RestaurantOperationDays == ""{
+		RestaurantAvailability == "" || RestaurantOperationHours == "" ||
+		RestaurantOperationDays == "" || restaurantMinimumOrderAmount <= 0 ||
+		restaurantDiscountPercentage < 0 {
 		return false
 	}
 	return true
 }
 
 func ValidateRestaurantItemFields(RestaurantItemName string, RestaurantItemImageUrl string,
-	RestaurantItemPrice int64, RestaurantItemCategory string, 
+	RestaurantItemPrice int64, RestaurantItemCategory string,
 	RestaurantItemCuisine string, RestaurantName string) bool {
-	
+
 	if RestaurantItemName == "" || RestaurantItemImageUrl == "" || RestaurantItemPrice <= 0 ||
-		RestaurantItemCategory == "" || RestaurantItemCuisine == "" || RestaurantName == ""{
+		RestaurantItemCategory == "" || RestaurantItemCuisine == "" || RestaurantName == "" {
 		return false
 	}
 	return true

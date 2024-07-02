@@ -21,6 +21,8 @@ message Restaurant {
     string restaurantOwnerMail = 8;
     string restaurantOperationDays =9;
     string restaurantOperationHours =10;
+    int64 restaurantMinimumOrderAmount  = 11;
+    float restaurantDiscountPercentage = 12;
 }
 message RestaurantItem {
     string restaurantItemId = 1;

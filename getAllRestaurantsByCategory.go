@@ -21,7 +21,7 @@ func (*RestaurantService) GetRestaurantsByItemCategory(ctx context.Context,
 		return &restaurantpb.GetRestaurantsByItemCategoryResponse{
 			Data:       nil,
 			Message:    "Invalid Field, category field is required",
-			StatusCode: 400,
+			StatusCode: StatusBadRequest,
 			Error:      "Bad Request",
 		}, nil
 	}
@@ -32,7 +32,7 @@ func (*RestaurantService) GetRestaurantsByItemCategory(ctx context.Context,
 		return &restaurantpb.GetRestaurantsByItemCategoryResponse{
 			Data:       nil,
 			Message:    "Failed to get restaurant items",
-			StatusCode: 500,
+			StatusCode: StatusInternalServerError,
 			Error:      "Internal Server Error",
 		}, nil
 	}
@@ -57,7 +57,7 @@ func (*RestaurantService) GetRestaurantsByItemCategory(ctx context.Context,
 			return &restaurantpb.GetRestaurantsByItemCategoryResponse{
 				Data:       nil,
 				Message:    "Failed to get restaurant or restaurant address",
-				StatusCode: 500,
+				StatusCode: StatusInternalServerError,
 				Error:      "Internal Server Error",
 			}, nil
 		}
@@ -71,6 +71,8 @@ func (*RestaurantService) GetRestaurantsByItemCategory(ctx context.Context,
 			RestaurantOperationDays:  restaurant.OperationDays,
 			RestaurantOperationHours: restaurant.OperationHours,
 			RestaurantOwnerMail:      restaurant.RestaurantOwnerMail,
+			RestaurantMinimumOrderAmount: restaurant.RestaurantMinimumOrderAmount,
+			RestaurantDiscountPercentage: restaurant.RestaurantDiscountPercentage,
 			RestaurantAddress: &restaurantpb.Address{
 				City:       restaurantAddress.City,
 				Country:    restaurantAddress.Country,
@@ -87,7 +89,7 @@ func (*RestaurantService) GetRestaurantsByItemCategory(ctx context.Context,
 			Restaurants:      restaurantsResponse,
 		},
 		Message:    "Restaurants fetched successfully",
-		StatusCode: 200,
+		StatusCode: StatusOK,
 		Error:      "",
 	}, nil
 }

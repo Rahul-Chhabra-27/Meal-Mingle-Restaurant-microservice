@@ -24,7 +24,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 		return &restaurantpb.AddRestaurantResponse{
 			Message:    "Failed to get user mail from context",
 			Error:      "Internal Server Error",
-			StatusCode: int64(500),
+			StatusCode: StatusInternalServerError,
 		}, nil
 	}
 	logger.Info("Context values retrieved", zap.String("userEmail", userEmail), zap.String("userRole", userRole))
@@ -33,7 +33,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 		return &restaurantpb.AddRestaurantResponse{
 			Data:       nil,
 			Message:    "You do not have permission to perform this action. Only admin can add a restaurant",
-			StatusCode: 403,
+			StatusCode: StatusForbidden,
 			Error:      "Forbidden",
 		}, nil
 	}
@@ -50,7 +50,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 		return &restaurantpb.AddRestaurantResponse{
 			Data:       nil,
 			Message:    "Invalid restaurant address data provided. Some fields might be missing or invalid",
-			StatusCode: 400,
+			StatusCode: StatusBadRequest,
 			Error:      "Bad Request",
 		}, nil
 	}
@@ -62,19 +62,23 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 	restaurant.OperationDays = request.Restaurant.RestaurantOperationDays
 	restaurant.OperationHours = request.Restaurant.RestaurantOperationHours
 	restaurant.RestaurantOwnerMail = userEmail
+	restaurant.RestaurantMinimumOrderAmount = request.Restaurant.RestaurantMinimumOrderAmount
+	restaurant.RestaurantDiscountPercentage = request.Restaurant.RestaurantDiscountPercentage
+	
 
 	logger.Info("Restaurant data populated", zap.String("restaurantName", restaurant.Name))
 
 	if !config.ValidateRestaurantFields(restaurant.Name, restaurantAddress,
 		restaurant.Phone, restaurant.Availability,
 		restaurant.ImageUrl, restaurant.OperationDays,
-		restaurant.OperationHours, restaurant.Rating) {
+		restaurant.OperationHours, restaurant.Rating, restaurant.RestaurantMinimumOrderAmount,
+		restaurant.RestaurantDiscountPercentage) {
 		logger.Warn("Invalid restaurant data provided", zap.String("restaurantName", restaurant.Name))
-		
+
 		return &restaurantpb.AddRestaurantResponse{
 			Data:       nil,
 			Message:    "Invalid restaurant data provided. Some fields might be missing or invalid",
-			StatusCode: 400,
+			StatusCode: StatusBadRequest,
 			Error:      "Bad Request",
 		}, nil
 	}
@@ -84,7 +88,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 		return &restaurantpb.AddRestaurantResponse{
 			Data:       nil,
 			Message:    "Invalid phone number format",
-			StatusCode: 400,
+			StatusCode: StatusBadRequest,
 			Error:      "Bad Request",
 		}, nil
 	}
@@ -94,7 +98,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 		return &restaurantpb.AddRestaurantResponse{
 			Data:       nil,
 			Message:    "Same name restaurant exists. Please check the restaurant name and try again.",
-			StatusCode: int64(409),
+			StatusCode: StatusConflict,
 			Error:      "Restaurant creation failed",
 		}, nil
 	}
@@ -104,7 +108,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 		return &restaurantpb.AddRestaurantResponse{
 			Data:       nil,
 			Message:    "Failed to add restaurant",
-			StatusCode: 409,
+			StatusCode: StatusConflict,
 			Error:      "The provided phone number is already associated with an account",
 		}, nil
 	}
@@ -115,7 +119,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 		return &restaurantpb.AddRestaurantResponse{
 			Data:       nil,
 			Message:    "Failed to add restaurant address",
-			StatusCode: 500,
+			StatusCode: StatusInternalServerError,
 			Error:      err.Error.Error(),
 		}, nil
 	}
@@ -128,7 +132,7 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 			Restaurant: RestaurantResponse,
 		},
 		Message:    "Restaurant added successfully",
-		StatusCode: 200,
+		StatusCode: StatusOK,
 		Error:      "",
 	}, nil
 }
