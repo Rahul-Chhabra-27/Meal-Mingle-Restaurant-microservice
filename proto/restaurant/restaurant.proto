@@ -80,7 +80,7 @@ message AddRestaurantItemResponseData {
     RestaurantItem restaurantItem = 1;
 }
 message AddRestaurantItemRequest {
-    AddRestaurantItemData restaurantItem = 1;
+    RestaurantItem restaurantItem = 1;
 }
 message AddRestaurantItemResponse {
     AddRestaurantItemResponseData data = 1;

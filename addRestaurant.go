@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"restaurant-micro/config"
 	"restaurant-micro/model"
 	restaurantpb "restaurant-micro/proto/restaurant"
@@ -12,15 +11,13 @@ import (
 )
 
 func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurantpb.AddRestaurantRequest) (*restaurantpb.AddRestaurantResponse, error) {
-	logger.Info("Received AddRestaurant request",
-		zap.String("restaurantName", request.Restaurant.RestaurantName))
+	logger.Info("Received AddRestaurant request")
 
 	userEmail, emailCtxError := ctx.Value("userEmail").(string)
 	userRole, roleCtxError := ctx.Value("userRole").(string)
 
 	if !emailCtxError || !roleCtxError {
 		logger.Error("Failed to get user email or role from context")
-		fmt.Println("Failed to get user email from context")
 		return &restaurantpb.AddRestaurantResponse{
 			Message:    "Failed to get user mail from context",
 			Error:      "Internal Server Error",
@@ -64,7 +61,6 @@ func (*RestaurantService) AddRestaurant(ctx context.Context, request *restaurant
 	restaurant.RestaurantOwnerMail = userEmail
 	restaurant.RestaurantMinimumOrderAmount = request.Restaurant.RestaurantMinimumOrderAmount
 	restaurant.RestaurantDiscountPercentage = request.Restaurant.RestaurantDiscountPercentage
-	
 
 	logger.Info("Restaurant data populated", zap.String("restaurantName", restaurant.Name))
 

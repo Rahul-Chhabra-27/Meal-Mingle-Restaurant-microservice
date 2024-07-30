@@ -60,7 +60,7 @@ func ValidateRestaurantFields(RestaurantName string, RestaurantAddress model.Add
 		RestaurantAddress.Country == "" || RestaurantAddress.Pincode == "" ||
 		RestaurantAddress.StreetName == "" || RestaurantPhone == "" ||
 		RestaurantAvailability == "" || RestaurantOperationHours == "" ||
-		RestaurantOperationDays == "" || restaurantMinimumOrderAmount <= 0 ||
+		RestaurantOperationDays == "" || restaurantMinimumOrderAmount < 0 ||
 		restaurantDiscountPercentage < 0 {
 		return false
 	}
@@ -69,10 +69,9 @@ func ValidateRestaurantFields(RestaurantName string, RestaurantAddress model.Add
 
 func ValidateRestaurantItemFields(RestaurantItemName string, RestaurantItemImageUrl string,
 	RestaurantItemPrice int64, RestaurantItemCategory string,
-	RestaurantItemCuisine string, RestaurantName string) bool {
-
+	RestaurantItemCuisine string, RestaurantId string) bool {
 	if RestaurantItemName == "" || RestaurantItemImageUrl == "" || RestaurantItemPrice <= 0 ||
-		RestaurantItemCategory == "" || RestaurantItemCuisine == "" || RestaurantName == "" {
+		RestaurantItemCategory == "" || RestaurantItemCuisine == "" || RestaurantId == "" {
 		return false
 	}
 	return true

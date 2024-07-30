@@ -1,6 +1,9 @@
 # Base image
 FROM golang:1.22.2-alpine3.19
 
+# Install bash
+RUN apk add --no-cache bash
+
 # Move to working directory /app
 WORKDIR /app
 
@@ -14,4 +17,4 @@ RUN go mod tidy && go mod vendor
 EXPOSE 8091
 
 # Command to run the application when starting the container
-CMD ["go","run","."]
+CMD ["go", "run", "."]

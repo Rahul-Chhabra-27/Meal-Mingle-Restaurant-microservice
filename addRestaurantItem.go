@@ -10,9 +10,8 @@ import (
 	"go.uber.org/zap"
 )
 
-func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restaurantpb.AddRestaurantItemRequest) (*restaurantpb.AddRestaurantItemResponse, error){
-	logger.Info("Received AddRestaurantItem request",
-		zap.String("restaurantItemName", request.RestaurantItem.RestaurantItemName))
+func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restaurantpb.AddRestaurantItemRequest) (*restaurantpb.AddRestaurantItemResponse, error) {
+	logger.Info("Received AddRestaurantItem request")
 
 	userEmail, emailCtxError := ctx.Value("userEmail").(string)
 	userRole, roleCtxError := ctx.Value("userRole").(string)
@@ -39,13 +38,12 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 			Error:      "Forbidden",
 		}, nil
 	}
-
 	if request.RestaurantItem == nil ||
 		!config.ValidateRestaurantItemFields(request.RestaurantItem.RestaurantItemName,
 			request.RestaurantItem.RestaurantItemImageUrl, request.RestaurantItem.RestaurantItemPrice,
 			request.RestaurantItem.RestaurantItemCategory,
 			request.RestaurantItem.RestaurantItemCuisineType,
-			request.RestaurantItem.RestaurantName) {
+			request.RestaurantItem.RestaurantId) {
 		logger.Warn("Invalid restaurant item data provided")
 		return &restaurantpb.AddRestaurantItemResponse{
 			Data:       nil,
@@ -64,11 +62,17 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 
 	// fetch restaurant from restaurantDB
 	var restaurant model.Restaurant
-	primaryKey := restaurantDBConnector.Where("name = ?", request.RestaurantItem.RestaurantName).First(&restaurant)
+	restaurantID, err := strconv.ParseUint(request.RestaurantItem.RestaurantId, 10, 64)
+	if err != nil {
+		logger.Error("Failed to convert restaurant ID to uint", zap.Error(err))
+		return nil, err
+	}
+
+	primaryKey := restaurantDBConnector.Where("id = ?", uint(restaurantID)).First(&restaurant)
 	// check if the restaurant is exist or not.
 	if primaryKey.Error != nil || restaurant.RestaurantOwnerMail != userEmail {
 		logger.Warn("Restaurant does not exist or you are not authorized to modify this restaurant's data",
-			zap.String("restaurantName", request.RestaurantItem.RestaurantName))
+			zap.String("restaurantName", request.RestaurantItem.GetRestaurantId()))
 		return &restaurantpb.AddRestaurantItemResponse{
 			Data:       nil,
 			Message:    "You are not authorized to modify this restaurant's data Or Restaurant does not exist",
@@ -90,7 +94,7 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 	}
 	logger.Info("Restaurant item added successfully", zap.String("restaurantItemName", request.RestaurantItem.RestaurantItemName))
 	// Return a success message if the restaurant item is created successfully
-	restaurantItemResponse := addRestaurantItemResponseData(restaurant.ID,restaurantItem.ID, request.RestaurantItem)
+	restaurantItemResponse := addRestaurantItemResponseData(restaurant.ID, restaurantItem.ID, request.RestaurantItem)
 	return &restaurantpb.AddRestaurantItemResponse{
 		Data: &restaurantpb.AddRestaurantItemResponseData{
 			RestaurantItem: restaurantItemResponse,
@@ -101,7 +105,7 @@ func (*RestaurantService) AddRestaurantItem(ctx context.Context, request *restau
 	}, nil
 }
 
-func addRestaurantItemResponseData(restaurantId uint,restaurantItemId uint ,restaurantItemData *restaurantpb.AddRestaurantItemData) *restaurantpb.RestaurantItem {
+func addRestaurantItemResponseData(restaurantId uint, restaurantItemId uint, restaurantItemData *restaurantpb.RestaurantItem) *restaurantpb.RestaurantItem {
 	var restaurantItemResponse = &restaurantpb.RestaurantItem{
 		RestaurantItemId:          strconv.FormatUint(uint64(restaurantItemId), 10),
 		RestaurantItemName:        restaurantItemData.RestaurantItemName,
